@@ -1148,43 +1148,95 @@ def main():
     # TAB 2: Cumulative Points
     # ================================================================
     with tabs[2]:
-        section_header(
-            "Cumulative Points Race",
-            "Running total of points scored across all seasons."
+        cum_mode = st.radio(
+            "View", ["Points vs League Avg", "Season Rankings", "Raw Cumulative"],
+            horizontal=True, key="cum_mode"
         )
 
-        cum = analytics.cumulative_points(w)
-        if not cum.empty:
-            fig = px.line(
-                cum, x="week_label", y="cumulative_points", color="manager",
-                labels={"week_label": "Week", "cumulative_points": "Cumulative Points",
-                        "manager": "Manager"},
-                hover_data={"points": ":.1f"},
-                color_discrete_sequence=CHART_COLORS,
+        if cum_mode == "Points vs League Avg":
+            section_header(
+                "Cumulative Points vs League Average",
+                "Who is gaining or losing ground relative to the pack over time. Rising = outperforming, falling = underperforming."
             )
-            apply_chart_style(fig, height=580)
-            fig.update_traces(line=dict(width=2.5))
-            fig.update_layout(xaxis=dict(tickmode="auto", nticks=30))
-
-            # Season boundary lines
-            season_starts = cum.groupby("season")["week_label"].first().tolist()
-            for label in season_starts[1:]:
-                fig.add_vline(
-                    x=label, line_dash="dot",
-                    line_color=COLORS["border_accent"], opacity=0.4
+            cum_va = analytics.cumulative_vs_average(w)
+            if not cum_va.empty:
+                fig = px.line(
+                    cum_va, x="week_label", y="cumulative_vs_avg", color="manager",
+                    labels={"week_label": "Week", "cumulative_vs_avg": "Cumulative vs Avg",
+                            "manager": "Manager"},
+                    hover_data={"pts_vs_avg": ":.1f"},
+                    color_discrete_sequence=CHART_COLORS,
                 )
+                apply_chart_style(fig, height=580)
+                fig.update_traces(line=dict(width=2.5))
+                fig.update_layout(xaxis=dict(tickmode="auto", nticks=30))
+                fig.add_hline(y=0, line_dash="solid", line_color=COLORS["text_muted"], opacity=0.3)
 
-            st.plotly_chart(fig, use_container_width=True)
+                season_starts = cum_va.groupby("season")["week_label"].first().tolist()
+                for label in season_starts[1:]:
+                    fig.add_vline(x=label, line_dash="dot",
+                                  line_color=COLORS["border_accent"], opacity=0.4)
 
-            # Rankings table
-            st.markdown("<div style='height: 0.5rem'></div>", unsafe_allow_html=True)
-            final = cum.groupby("manager")["cumulative_points"].last().reset_index()
-            final = final.sort_values("cumulative_points", ascending=False).reset_index(drop=True)
-            final.columns = ["Manager", "Total Points"]
-            final["Total Points"] = final["Total Points"].round(1)
-            final.index = final.index + 1
-            final.index.name = "Rank"
-            st.dataframe(final, use_container_width=True)
+                st.plotly_chart(fig, use_container_width=True)
+
+                # Final standings
+                final = cum_va.groupby("manager")["cumulative_vs_avg"].last().reset_index()
+                final = final.sort_values("cumulative_vs_avg", ascending=False).reset_index(drop=True)
+                final.columns = ["Manager", "Cumulative vs Avg"]
+                final.index = final.index + 1
+                final.index.name = "Rank"
+                st.dataframe(final, use_container_width=True)
+
+        elif cum_mode == "Season Rankings":
+            section_header(
+                "Season-by-Season Finish",
+                "How each manager's points rank changes year to year. Crossovers = overtakes."
+            )
+            rankings = analytics.season_points_ranking(w)
+            if not rankings.empty:
+                fig = px.line(
+                    rankings, x="season", y="rank", color="manager",
+                    markers=True,
+                    labels={"season": "Season", "rank": "Points Rank", "manager": "Manager"},
+                    color_discrete_sequence=CHART_COLORS,
+                )
+                apply_chart_style(fig, height=500)
+                fig.update_traces(line=dict(width=2.5), marker=dict(size=8))
+                fig.update_layout(yaxis=dict(autorange="reversed", dtick=1))
+                st.plotly_chart(fig, use_container_width=True)
+
+        else:
+            section_header(
+                "Raw Cumulative Points",
+                "Running total of points scored across all seasons."
+            )
+            cum = analytics.cumulative_points(w)
+            if not cum.empty:
+                fig = px.line(
+                    cum, x="week_label", y="cumulative_points", color="manager",
+                    labels={"week_label": "Week", "cumulative_points": "Cumulative Points",
+                            "manager": "Manager"},
+                    hover_data={"points": ":.1f"},
+                    color_discrete_sequence=CHART_COLORS,
+                )
+                apply_chart_style(fig, height=580)
+                fig.update_traces(line=dict(width=2.5))
+                fig.update_layout(xaxis=dict(tickmode="auto", nticks=30))
+
+                season_starts = cum.groupby("season")["week_label"].first().tolist()
+                for label in season_starts[1:]:
+                    fig.add_vline(x=label, line_dash="dot",
+                                  line_color=COLORS["border_accent"], opacity=0.4)
+
+                st.plotly_chart(fig, use_container_width=True)
+
+                final = cum.groupby("manager")["cumulative_points"].last().reset_index()
+                final = final.sort_values("cumulative_points", ascending=False).reset_index(drop=True)
+                final.columns = ["Manager", "Total Points"]
+                final["Total Points"] = final["Total Points"].round(1)
+                final.index = final.index + 1
+                final.index.name = "Rank"
+                st.dataframe(final, use_container_width=True)
 
     # ================================================================
     # TAB 3: Boom / Bust
@@ -1704,10 +1756,10 @@ def main():
             st.info("No draft data available.")
         else:
             draft_subtabs = st.tabs([
-                "Overview", "Position Tendencies", "Draft Capital", "Round Strategy",
+                "Overview", "Strategy ROI", "Position Tendencies", "Draft Capital", "Round Strategy",
             ])
 
-            # --- Draft Overview ---
+            # --- Draft Overview (sub-tab 0) ---
             with draft_subtabs[0]:
                 section_header("Draft Strategy", "How each manager allocates early draft capital (Rounds 1-3)")
                 overview = analytics.draft_overview(drafts_df, w)
@@ -1743,8 +1795,56 @@ def main():
                         })
                         st.dataframe(display, hide_index=True, use_container_width=True)
 
-            # --- Position Tendencies ---
+            # --- Strategy ROI (sub-tab 1) ---
             with draft_subtabs[1]:
+                section_header("Strategy ROI", "Does your early-round strategy actually pay off? Results across 160 manager-seasons.")
+
+                roi = analytics.draft_strategy_roi(drafts_df, w, s)
+                if not roi.empty:
+                    for _, row in roi.iterrows():
+                        color = COLORS["accent_green"] if row["avg_finish"] <= 5.2 else COLORS["accent_orange"] if row["avg_finish"] <= 5.5 else COLORS["accent_red"]
+                        st.markdown(f"""
+                        <div style="display: flex; align-items: center; gap: 1.5rem;
+                                    background: {COLORS['bg_card']}; border: 1px solid {COLORS['border']};
+                                    border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 0.5rem;">
+                            <div style="flex: 1;">
+                                <div style="color: {COLORS['text_primary']}; font-size: 1.1rem; font-weight: 600;">{row['strategy']}</div>
+                                <div style="color: {COLORS['text_muted']}; font-size: 0.85rem;">{int(row['seasons'])} seasons observed</div>
+                            </div>
+                            <div style="text-align: center; padding: 0 1rem;">
+                                <div style="color: {COLORS['text_muted']}; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em;">Avg Finish</div>
+                                <div style="color: {color}; font-size: 1.5rem; font-weight: 800;">#{row['avg_finish']}</div>
+                            </div>
+                            <div style="text-align: center; padding: 0 1rem;">
+                                <div style="color: {COLORS['text_muted']}; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.08em;">Top-3 Rate</div>
+                                <div style="color: {COLORS['accent_cyan']}; font-size: 1.5rem; font-weight: 800;">{int(row['top3_rate'])}%</div>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+                st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
+                section_header("Does Early Investment Pay Off By Position?", "Heavy = 2+ picks in R1-3 at that position (2019+ data with lineup detail)")
+
+                cap_perf = analytics.draft_capital_vs_performance(drafts_df, s)
+                if not cap_perf.empty:
+                    for _, row in cap_perf.iterrows():
+                        edge_color = COLORS["accent_green"] if row["edge"] > 0 else COLORS["accent_red"]
+                        sign = "+" if row["edge"] > 0 else ""
+                        st.markdown(f"""
+                        <div style="display: flex; align-items: center; gap: 1rem;
+                                    background: {COLORS['bg_card']}; border: 1px solid {COLORS['border']};
+                                    border-radius: 10px; padding: 0.75rem 1.25rem; margin-bottom: 0.4rem;">
+                            <div style="font-size: 1.1rem; font-weight: 700; color: {COLORS['text_primary']}; min-width: 3rem;">{row['position']}</div>
+                            <div style="flex: 1; color: {COLORS['text_secondary']}; font-size: 0.85rem;">
+                                Heavy invest: <span style="color: {COLORS['text_primary']}; font-weight: 600;">{row['heavy_invest_avg']}</span> ppg |
+                                Light/none: <span style="color: {COLORS['text_primary']}; font-weight: 600;">{row['light_invest_avg']}</span> ppg
+                            </div>
+                            <div style="font-size: 1.3rem; font-weight: 800; color: {edge_color};">{sign}{row['edge']} ppg</div>
+                        </div>
+                        """, unsafe_allow_html=True)
+
+            # --- Position Tendencies (sub-tab 2) ---
+            with draft_subtabs[2]:
                 section_header(
                     "Draft Position Tendencies",
                     "What positions each manager prioritizes in the draft"
@@ -1767,8 +1867,8 @@ def main():
                         apply_chart_style(fig, height=420)
                         st.plotly_chart(fig, use_container_width=True)
 
-            # --- Draft Capital ---
-            with draft_subtabs[2]:
+            # --- Draft Capital (sub-tab 3) ---
+            with draft_subtabs[3]:
                 section_header(
                     "Draft Capital by Position",
                     "Average pick number spent on each position. Lower = more draft capital invested."
@@ -1799,8 +1899,8 @@ def main():
 
                     st.caption("Green = higher draft capital (earlier picks), Red = lower draft capital (later picks)")
 
-            # --- Round Strategy ---
-            with draft_subtabs[3]:
+            # --- Round Strategy (sub-tab 4) ---
+            with draft_subtabs[4]:
                 section_header(
                     "Round-by-Round Strategy",
                     "Most-drafted position in each round across all seasons"

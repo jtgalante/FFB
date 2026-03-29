@@ -214,6 +214,41 @@ def cumulative_points(weekly_df: pd.DataFrame) -> pd.DataFrame:
     return df[["manager", "season", "week", "week_label", "points", "cumulative_points"]].copy()
 
 
+def cumulative_vs_average(weekly_df: pd.DataFrame) -> pd.DataFrame:
+    """Cumulative points above/below league average over time.
+
+    More useful than raw cumulative over long horizons — shows who is
+    gaining or losing ground relative to the pack.
+    """
+    if weekly_df.empty:
+        return pd.DataFrame()
+
+    df = weekly_df.sort_values(["season", "week"]).copy()
+    df["week_label"] = df["season"].astype(str) + " W" + df["week"].astype(str)
+    df["global_order"] = df["season"] * 100 + df["week"]
+
+    # Compute league average points per week
+    week_avg = df.groupby(["season", "week"])["points"].mean().reset_index(name="league_avg")
+    df = df.merge(week_avg, on=["season", "week"])
+    df["pts_vs_avg"] = df["points"] - df["league_avg"]
+
+    df = df.sort_values(["manager", "global_order"])
+    df["cumulative_vs_avg"] = df.groupby("manager")["pts_vs_avg"].cumsum().round(1)
+
+    return df[["manager", "season", "week", "week_label", "points",
+               "pts_vs_avg", "cumulative_vs_avg"]].copy()
+
+
+def season_points_ranking(weekly_df: pd.DataFrame) -> pd.DataFrame:
+    """Season-by-season total points with rank — for bump chart."""
+    if weekly_df.empty:
+        return pd.DataFrame()
+
+    pts = weekly_df.groupby(["manager", "season"])["points"].sum().reset_index()
+    pts["rank"] = pts.groupby("season")["points"].rank(ascending=False).astype(int)
+    return pts.sort_values(["season", "rank"])
+
+
 def championships_and_sackos(summaries_df: pd.DataFrame) -> pd.DataFrame:
     """Count championships (#1 finish) and sackos (last place) per manager.
 
@@ -615,3 +650,100 @@ def draft_capital_by_position(drafts_df: pd.DataFrame) -> pd.DataFrame:
 
     col_order = [c for c in main_positions if c in pivot.columns]
     return pivot[col_order]
+
+
+def draft_strategy_roi(
+    drafts_df: pd.DataFrame,
+    weekly_df: pd.DataFrame,
+    slots_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Does spending early draft capital on a position pay off at that position?
+
+    For each manager+season, compares early-round (R1-3) positional allocation
+    to actual positional scoring. Returns a DataFrame showing:
+    strategy, seasons, avg_finish, top3_rate, avg_pts.
+    """
+    if drafts_df.empty or weekly_df.empty:
+        return pd.DataFrame()
+
+    early = drafts_df[drafts_df["round"] <= 3].copy()
+    season_pts = weekly_df.groupby(["manager", "season"])["points"].sum().reset_index()
+    season_pts["rank"] = season_pts.groupby("season")["points"].rank(ascending=False)
+
+    strategies = {
+        "RB-RB-RB": lambda rb, wr, qb, te: rb >= 3,
+        "RB-RB-WR": lambda rb, wr, qb, te: rb == 2 and wr >= 1 and qb == 0 and te == 0,
+        "RB-WR-WR": lambda rb, wr, qb, te: rb >= 1 and wr >= 2 and qb == 0 and te == 0,
+        "WR-WR-WR": lambda rb, wr, qb, te: wr >= 3,
+        "QB/TE in R1-3": lambda rb, wr, qb, te: qb + te >= 1,
+    }
+
+    rows = []
+    for strat_name, check_fn in strategies.items():
+        matches = []
+        for (mgr, season), group in early.groupby(["manager", "season"]):
+            rb = (group["position"] == "RB").sum()
+            wr = (group["position"] == "WR").sum()
+            qb = (group["position"] == "QB").sum()
+            te = (group["position"] == "TE").sum()
+            if check_fn(rb, wr, qb, te):
+                matches.append((mgr, season))
+        if matches:
+            mdf = pd.DataFrame(matches, columns=["manager", "season"])
+            merged = mdf.merge(season_pts, on=["manager", "season"])
+            rows.append({
+                "strategy": strat_name,
+                "seasons": len(merged),
+                "avg_finish": round(merged["rank"].mean(), 1),
+                "top3_rate": round((merged["rank"] <= 3).mean() * 100, 0),
+                "best_finish": int(merged["rank"].min()),
+            })
+
+    return pd.DataFrame(rows)
+
+
+def draft_capital_vs_performance(
+    drafts_df: pd.DataFrame,
+    slots_df: pd.DataFrame,
+) -> pd.DataFrame:
+    """Cross-reference early draft picks at a position with scoring at that position.
+
+    Returns per-position: correlation, heavy-investment avg, light-investment avg.
+    """
+    if drafts_df.empty or slots_df.empty:
+        return pd.DataFrame()
+
+    early = drafts_df[drafts_df["round"] <= 3].copy()
+    early_pos = early.groupby(["manager", "season", "position"]).size().reset_index(name="early_picks")
+
+    starter_slots = {"QB", "RB1", "RB2", "WR1", "WR2", "FLEX", "FLEX2", "TE"}
+    starters = slots_df[slots_df["slot"].isin(starter_slots)].copy()
+    starters["pos_group"] = starters["slot"].str.replace(r'\d+', '', regex=True)
+    starters.loc[starters["slot"].isin(["FLEX", "FLEX2"]), "pos_group"] = "FLEX"
+
+    pos_avg = starters.groupby(["manager", "season", "pos_group"])["points"].mean().reset_index()
+    pos_avg.columns = ["manager", "season", "position", "avg_pts"]
+
+    merged = early_pos.merge(pos_avg, on=["manager", "season", "position"], how="inner")
+
+    rows = []
+    for pos in ["RB", "WR", "QB", "TE"]:
+        sub = merged[merged["position"] == pos]
+        if len(sub) > 5:
+            corr = sub["early_picks"].corr(sub["avg_pts"])
+            heavy = sub[sub["early_picks"] >= 2]["avg_pts"].mean()
+
+            # Get light/none performers (seasons not in heavy set)
+            heavy_keys = set(sub[sub["early_picks"] >= 2].set_index(["manager", "season"]).index)
+            all_pos = pos_avg[pos_avg["position"] == pos]
+            light = all_pos[~all_pos.set_index(["manager", "season"]).index.isin(heavy_keys)]["avg_pts"].mean()
+
+            rows.append({
+                "position": pos,
+                "correlation": round(corr, 3) if not pd.isna(corr) else 0,
+                "heavy_invest_avg": round(heavy, 1) if not pd.isna(heavy) else 0,
+                "light_invest_avg": round(light, 1) if not pd.isna(light) else 0,
+                "edge": round((heavy - light), 1) if not pd.isna(heavy) else 0,
+            })
+
+    return pd.DataFrame(rows)

@@ -1,0 +1,12 @@
+.env
+__pycache__/
+*.pyc
+.venv/
+*.egg-info/
+dist/
+build/
+.streamlit/
+.claude/
+
+# Data — include cache for deployment, exclude large player DB
+data/players_cache.json

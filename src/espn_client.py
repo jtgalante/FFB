@@ -217,6 +217,13 @@ def fetch_draft_data(cfg: ESPNConfig, year: int) -> list[DraftPick]:
     # Build owner map: team_id -> manager name
     owner_map = {team.team_id: _get_owner_name(team) for team in league.teams}
 
+    # Build position map from rosters (covers all drafted players cheaply)
+    pos_map: dict[int, str] = {}
+    for team in league.teams:
+        for player in team.roster:
+            if hasattr(player, 'playerId') and hasattr(player, 'position'):
+                pos_map[player.playerId] = player.position or ""
+
     draft_picks: list[DraftPick] = []
 
     for overall_pick, pick in enumerate(draft, start=1):
@@ -240,8 +247,6 @@ def fetch_draft_data(cfg: ESPNConfig, year: int) -> list[DraftPick]:
                 round_num = 1  # auction drafts are effectively 1 round
 
             # Calculate overall pick number
-            # If round_pick is available and round_num is meaningful, compute it
-            # Otherwise fall back to enumeration order
             if round_num > 0 and round_pick > 0:
                 n_teams = len(league.teams)
                 pick_no = (round_num - 1) * n_teams + round_pick
@@ -250,22 +255,25 @@ def fetch_draft_data(cfg: ESPNConfig, year: int) -> list[DraftPick]:
 
             # Get player ID
             player_id = ""
+            pid_int = 0
             if hasattr(pick, "playerId"):
                 player_id = str(pick.playerId)
+                pid_int = pick.playerId
             elif hasattr(pick, "player_id"):
                 player_id = str(pick.player_id)
+                pid_int = pick.player_id
 
-            # Get position
-            position = ""
-            if hasattr(pick, "position"):
-                position = getattr(pick, "position", "") or ""
-            if not position and hasattr(pick, "playerPosition"):
-                position = getattr(pick, "playerPosition", "") or ""
+            # Get position — try roster map first, then player_info as fallback
+            position = pos_map.get(pid_int, "")
+            if not position:
+                try:
+                    info = league.player_info(playerId=pid_int)
+                    if info and hasattr(info, 'position'):
+                        position = info.position or ""
+                except Exception:
+                    pass
             # Normalize position
             position = position.replace("D/ST", "DST").replace("DEF", "DST")
-
-            # bid_amount available for auction drafts (informational, not stored yet)
-            # bid_amount = getattr(pick, "bid_amount", 0)
 
             draft_picks.append(DraftPick(
                 manager=manager,

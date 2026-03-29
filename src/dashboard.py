@@ -677,7 +677,7 @@ def _render_pod_mode(w, s, summaries_df, selected_seasons, managers):
     </div>
     """, unsafe_allow_html=True)
 
-    pod_tabs = st.tabs(["Manager Spotlight", "Head to Head", "Leaderboard", "Records"])
+    pod_tabs = st.tabs(["Manager Spotlight", "Head to Head", "Leaderboard", "Superlatives"])
 
     all_stats = analytics.manager_weekly_stats(w)
 
@@ -845,77 +845,96 @@ def _render_pod_mode(w, s, summaries_df, selected_seasons, managers):
                 </div>
                 """, unsafe_allow_html=True)
 
-    # ==================== RECORDS ====================
+    # ==================== SUPERLATIVES ====================
     with pod_tabs[3]:
-        section_header("League Records", "All-time highs and lows")
+        section_header("Superlatives", "League awards based on the data")
 
-        # Compute records
-        records = []
+        # Compute all the superlatives
+        superlatives = []
 
-        # Highest scoring week ever
-        best_week_idx = w["points"].idxmax()
-        bw = w.loc[best_week_idx]
-        records.append(("Highest Scoring Week", f"{bw['points']:.1f}", bw["manager"],
-                         f"{int(bw['season'])} Week {int(bw['week'])}"))
+        saw = analytics.schedule_adjusted_win_rate(w)
+        dom = analytics.dominance_score(w)
+        cgr = analytics.close_game_record(w)
+        surge = analytics.second_half_surge(w)
+        luck = analytics.lucky_unlucky(w)
+        champ = analytics.championships_and_sackos(summaries_df)
 
-        # Lowest scoring week
-        worst_week_idx = w["points"].idxmin()
-        ww = w.loc[worst_week_idx]
-        records.append(("Lowest Scoring Week", f"{ww['points']:.1f}", ww["manager"],
-                         f"{int(ww['season'])} Week {int(ww['week'])}"))
+        if not all_stats.empty:
+            top_avg = all_stats.sort_values("avg_pts", ascending=False).iloc[0]
+            superlatives.append(("The GOAT", top_avg["manager"], f"{top_avg['avg_pts']} ppg all-time"))
 
-        # Biggest blowout
-        w_temp = w.copy()
-        w_temp["margin"] = w_temp["points"] - w_temp["opponent_points"]
-        blowout_idx = w_temp["margin"].idxmax()
-        bl = w_temp.loc[blowout_idx]
-        records.append(("Biggest Blowout", f"{bl['margin']:.1f} pts", bl["manager"],
-                         f"{bl['points']:.1f} vs {bl['opponent_points']:.1f}"))
+            low_cv = all_stats.sort_values("cv").iloc[0]
+            superlatives.append(("Mr. Consistent", low_cv["manager"], f"{low_cv['cv']}% CV — always shows up"))
 
-        # Closest game
-        w_temp["abs_margin"] = w_temp["margin"].abs()
-        close_idx = w_temp[w_temp["abs_margin"] > 0]["abs_margin"].idxmin()
-        cl = w_temp.loc[close_idx]
-        winner = cl["manager"] if cl["win"] else "opponent"
-        records.append(("Closest Game", f"{cl['abs_margin']:.1f} pts", cl["manager"],
-                         f"{cl['points']:.1f} vs {cl['opponent_points']:.1f}"))
+            high_cv = all_stats.sort_values("cv", ascending=False).iloc[0]
+            superlatives.append(("Boom or Bust", high_cv["manager"], f"{high_cv['cv']}% CV — who knows what you'll get"))
 
-        # Highest scoring matchup (combined)
-        w_temp["combined"] = w_temp["points"] + w_temp["opponent_points"]
-        high_combined_idx = w_temp["combined"].idxmax()
-        hc = w_temp.loc[high_combined_idx]
-        records.append(("Highest Scoring Matchup", f"{hc['combined']:.1f} combined", hc["manager"],
-                         f"{hc['points']:.1f} vs {hc['opponent_points']:.1f}"))
+            most_pts = all_stats.sort_values("total_pts", ascending=False).iloc[0]
+            superlatives.append(("Point Machine", most_pts["manager"], f"{most_pts['total_pts']:,.0f} career points"))
 
-        # Most wins in a season
-        season_stats = analytics.manager_season_stats(w)
-        if not season_stats.empty:
-            best_season_idx = season_stats["wins"].idxmax()
-            bs = season_stats.loc[best_season_idx]
-            records.append(("Most Wins (Single Season)", f"{int(bs['wins'])}-{int(bs['losses'])}",
-                             bs["manager"], f"{int(bs['season'])} season"))
+        if not saw.empty:
+            true_best = saw.iloc[0]
+            superlatives.append(("True Best (Schedule-Adjusted)", true_best["manager"],
+                                  f"{true_best['simulated_win_pct']}% vs all opponents every week"))
 
-            # Best single season avg
-            best_avg_idx = season_stats["avg_pts"].idxmax()
-            ba = season_stats.loc[best_avg_idx]
-            records.append(("Best Season Average", f"{ba['avg_pts']}", ba["manager"],
-                             f"{int(ba['season'])} season"))
+            luckiest = saw.sort_values("schedule_effect", ascending=False).iloc[0]
+            if luckiest["schedule_effect"] > 0:
+                superlatives.append(("Luckiest Schedule", luckiest["manager"],
+                                      f"+{luckiest['schedule_effect']}% above true win rate"))
 
-        for title, value, name, context in records:
-            st.markdown(f"""
-            <div style="display: flex; align-items: center; gap: 1.5rem;
-                        background: {COLORS['bg_card']}; border: 1px solid {COLORS['border']};
-                        border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 0.75rem;">
-                <div style="flex: 1;">
-                    <div style="color: {COLORS['text_muted']}; font-size: 0.75rem; font-weight: 700;
-                                text-transform: uppercase; letter-spacing: 0.08em;">{title}</div>
-                    <div style="color: {COLORS['text_primary']}; font-size: 1.1rem; font-weight: 600;
-                                margin-top: 0.25rem;">{name}</div>
-                    <div style="color: {COLORS['text_muted']}; font-size: 0.85rem;">{context}</div>
+        if not dom.empty:
+            top_dom = dom.iloc[0]
+            superlatives.append(("The Bully", top_dom["manager"],
+                                  f"Wins by {top_dom['avg_mov']:.0f}, loses by {top_dom['avg_mod']:.0f}"))
+
+        if not cgr.empty:
+            clutch = cgr.iloc[0]
+            superlatives.append(("Mr. Clutch", clutch["manager"],
+                                  f"{clutch['close_win_pct']}% in games within 10 pts"))
+
+        if not surge.empty:
+            surger = surge.iloc[0]
+            superlatives.append(("Second Half Surge", surger["manager"],
+                                  f"+{surger['avg_surge']} ppg in 2nd half of seasons"))
+
+            fader = surge.iloc[-1]
+            superlatives.append(("The Fader", fader["manager"],
+                                  f"{fader['avg_surge']} ppg in 2nd half of seasons"))
+
+        if not luck.empty:
+            luckiest_overall = luck.iloc[0]
+            superlatives.append(("Born Lucky", luckiest_overall["manager"],
+                                  f"+{luckiest_overall['luck_factor']}% actual vs expected win rate"))
+
+            unluckiest = luck.iloc[-1]
+            superlatives.append(("Snake Bitten", unluckiest["manager"],
+                                  f"{unluckiest['luck_factor']}% actual vs expected win rate"))
+
+        if not champ.empty and champ["championships"].max() > 0:
+            dynasty = champ.sort_values("championships", ascending=False).iloc[0]
+            superlatives.append(("Dynasty", dynasty["manager"],
+                                  f"{int(dynasty['championships'])} championships"))
+
+            if champ["sackos"].max() > 0:
+                toilet = champ.sort_values("sackos", ascending=False).iloc[0]
+                superlatives.append(("Sacko King", toilet["manager"],
+                                      f"{int(toilet['sackos'])} last-place finishes"))
+
+        # Render in two columns for density
+        col1, col2 = st.columns(2, gap="medium")
+        for i, (title, name, detail) in enumerate(superlatives):
+            with col1 if i % 2 == 0 else col2:
+                st.markdown(f"""
+                <div style="background: {COLORS['bg_card']}; border: 1px solid {COLORS['border']};
+                            border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 0.75rem;
+                            border-left: 3px solid {COLORS['accent_cyan']};">
+                    <div style="color: {COLORS['accent_cyan']}; font-size: 0.7rem; font-weight: 700;
+                                text-transform: uppercase; letter-spacing: 0.1em;">{title}</div>
+                    <div style="color: {COLORS['text_primary']}; font-size: 1.4rem; font-weight: 700;
+                                margin: 0.25rem 0;">{name}</div>
+                    <div style="color: {COLORS['text_secondary']}; font-size: 0.9rem;">{detail}</div>
                 </div>
-                <div style="font-size: 2.2rem; font-weight: 800; color: {COLORS['accent_cyan']};">{value}</div>
-            </div>
-            """, unsafe_allow_html=True)
+                """, unsafe_allow_html=True)
 
 
 # =============================================================================
@@ -1690,17 +1709,39 @@ def main():
 
             # --- Draft Overview ---
             with draft_subtabs[0]:
-                section_header("Draft Overview", "Aggregate draft stats per manager")
+                section_header("Draft Strategy", "How each manager allocates early draft capital (Rounds 1-3)")
                 overview = analytics.draft_overview(drafts_df, w)
                 if not overview.empty:
-                    # Show position columns if they exist
-                    pos_cols = [c for c in ["QB", "RB", "WR", "TE", "K", "DST"] if c in overview.columns]
-                    display_cols = ["manager", "total_picks", "seasons_drafted", "avg_round"] + pos_cols
-                    display = overview[display_cols].rename(columns={
-                        "manager": "Manager", "total_picks": "Total Picks",
-                        "seasons_drafted": "Seasons", "avg_round": "Avg Round",
-                    })
-                    st.dataframe(display, hide_index=True, use_container_width=True)
+                    # Early round allocation chart
+                    early_data = overview[["manager", "early_RB_pct", "early_WR_pct", "early_QB_pct", "early_TE_pct"]].melt(
+                        id_vars="manager", var_name="position", value_name="pct"
+                    )
+                    early_data["position"] = early_data["position"].str.replace("early_", "").str.replace("_pct", "")
+
+                    fig = px.bar(
+                        early_data, x="manager", y="pct", color="position",
+                        barmode="stack",
+                        labels={"manager": "Manager", "pct": "% of R1-3 Picks", "position": "Position"},
+                        color_discrete_map={
+                            "RB": COLORS["accent_green"], "WR": COLORS["accent_blue"],
+                            "QB": COLORS["accent_cyan"], "TE": COLORS["accent_orange"],
+                        },
+                    )
+                    apply_chart_style(fig, height=420)
+                    fig.update_layout(yaxis_title="% of Early Picks (R1-3)")
+                    st.plotly_chart(fig, use_container_width=True)
+
+                    st.markdown("<div style='height: 1rem'></div>", unsafe_allow_html=True)
+                    section_header("Average Pick by Position", "Lower = drafts that position earlier on average")
+
+                    avg_cols = [c for c in overview.columns if c.startswith("avg_") and c.endswith("_pick")]
+                    if avg_cols:
+                        display = overview[["manager"] + avg_cols].rename(columns={
+                            "manager": "Manager",
+                            "avg_QB_pick": "QB", "avg_RB_pick": "RB",
+                            "avg_WR_pick": "WR", "avg_TE_pick": "TE",
+                        })
+                        st.dataframe(display, hide_index=True, use_container_width=True)
 
             # --- Position Tendencies ---
             with draft_subtabs[1]:

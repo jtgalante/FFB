@@ -504,37 +504,47 @@ def rolling_power_rating(weekly_df: pd.DataFrame, window: int = 6) -> pd.DataFra
 
 
 def draft_overview(drafts_df: pd.DataFrame, weekly_df: pd.DataFrame) -> pd.DataFrame:
-    """Per-manager draft performance summary.
+    """Per-manager draft strategy summary.
 
-    Returns: manager, total_picks, avg_round, positions_drafted (dict counts),
-    avg_season_pts (avg points their picks scored).
+    Shows how each manager allocates early draft capital (rounds 1-3)
+    vs late rounds, and their positional tendencies.
     """
     if drafts_df.empty:
         return pd.DataFrame()
 
     df = drafts_df.copy()
+    main_pos = ["QB", "RB", "WR", "TE"]
 
-    # Fill in season_points from weekly data if available
-    if not weekly_df.empty and "season_points" in df.columns:
-        # Compute total season points per manager per season from weekly data
-        season_totals = weekly_df.groupby(["manager", "season"])["points"].sum().reset_index(
-            name="manager_season_pts")
-        # We don't have player-level season points from weekly, so use what drafts has
-        pass
+    # Early picks = rounds 1-3, late = rounds 8+
+    early = df[df["round"] <= 3]
+    late = df[df["round"] >= 8]
 
     result = df.groupby("manager").agg(
         total_picks=("pick", "count"),
-        seasons_drafted=("season", "nunique"),
-        avg_round=("round", "mean"),
+        seasons=("season", "nunique"),
     ).reset_index()
 
-    result["avg_round"] = result["avg_round"].round(1)
+    # Early round position breakdown (% of R1-3 picks that are RB, WR, QB, TE)
+    for pos in main_pos:
+        early_pos = early[early["position"] == pos].groupby("manager").size().reset_index(name=f"early_{pos}")
+        result = result.merge(early_pos, on="manager", how="left")
+        result[f"early_{pos}"] = result[f"early_{pos}"].fillna(0).astype(int)
 
-    # Position breakdown per manager
-    pos_counts = df.groupby(["manager", "position"]).size().unstack(fill_value=0)
-    result = result.merge(pos_counts, left_on="manager", right_index=True, how="left")
+    early_total = early.groupby("manager").size().reset_index(name="early_total")
+    result = result.merge(early_total, on="manager", how="left")
+    result["early_total"] = result["early_total"].fillna(1).astype(int)
 
-    return result.sort_values("total_picks", ascending=False)
+    # Convert to percentages
+    for pos in main_pos:
+        result[f"early_{pos}_pct"] = (result[f"early_{pos}"] / result["early_total"] * 100).round(0).astype(int)
+
+    # Average pick by position (lower = drafts that position earlier)
+    for pos in main_pos:
+        pos_avg = df[df["position"] == pos].groupby("manager")["pick"].mean().reset_index(name=f"avg_{pos}_pick")
+        result = result.merge(pos_avg, on="manager", how="left")
+        result[f"avg_{pos}_pick"] = result[f"avg_{pos}_pick"].round(0)
+
+    return result.sort_values("manager")
 
 
 def draft_position_tendencies(drafts_df: pd.DataFrame) -> pd.DataFrame:

@@ -9,10 +9,16 @@ from .config import (
 )
 from .sleeper_client import fetch_all_sleeper_data, fetch_all_sleeper_drafts
 from .espn_client import fetch_all_espn_data, fetch_all_espn_drafts
-from .cache import save_to_disk, load_from_disk, cache_age
+from .cache import (
+    save_to_disk, load_from_disk, cache_age,
+    save_platform_cache, load_platform_cache,
+    save_draft_cache, load_draft_cache,
+    ESPN_CACHE_PATH, SLEEPER_CACHE_PATH, DRAFT_CACHE_PATH,
+)
 
-# Maximum age (hours) before the disk cache is considered stale
-_CACHE_MAX_AGE_HOURS = 24
+# Maximum age (hours) before Sleeper cache is considered stale
+# ESPN cache never expires (league is frozen on ESPN)
+_SLEEPER_CACHE_MAX_AGE_HOURS = 24
 
 
 def _apply_canonical_names(records: list[dict]) -> list[dict]:
@@ -78,33 +84,54 @@ def load_all_data(
     if not force_refresh:
         age = cache_age()
         # Use cache if fresh enough, or always if no APIs configured
-        if age is not None and (age < _CACHE_MAX_AGE_HOURS or not has_apis):
+        if age is not None and (age < _SLEEPER_CACHE_MAX_AGE_HOURS or not has_apis):
             cached = load_from_disk()
             if cached is not None:
                 all_weekly, all_slots, all_summaries = cached
                 return _build_dataframes(all_weekly, all_slots, all_summaries)
 
     # ------------------------------------------------------------------
-    # 2. Fetch from APIs
+    # 2. ESPN: always load from frozen cache (never re-fetch)
     # ------------------------------------------------------------------
     all_weekly: list[WeeklyScore] = []
     all_slots: list[SlotScore] = []
     all_summaries: list[SeasonSummary] = []
 
-    if sleeper_cfg and sleeper_cfg.league_id:
-        sw, ss, su, _sd = fetch_all_sleeper_data(sleeper_cfg.league_id)
-        all_weekly.extend(sw)
-        all_slots.extend(ss)
-        all_summaries.extend(su)
-
-    if espn_cfg and espn_cfg.is_configured:
+    espn_cached = load_platform_cache(ESPN_CACHE_PATH)
+    if espn_cached is not None:
+        ew, es, eu = espn_cached
+        all_weekly.extend(ew)
+        all_slots.extend(es)
+        all_summaries.extend(eu)
+    elif espn_cfg and espn_cfg.is_configured:
         ew, es, eu, _ed = fetch_all_espn_data(espn_cfg)
         all_weekly.extend(ew)
         all_slots.extend(es)
         all_summaries.extend(eu)
+        save_platform_cache(ew, es, eu, ESPN_CACHE_PATH)
 
     # ------------------------------------------------------------------
-    # 3. Persist to disk for future loads
+    # 3. Sleeper: refresh if stale or forced
+    # ------------------------------------------------------------------
+    sleeper_age = cache_age(SLEEPER_CACHE_PATH)
+    sleeper_fresh = sleeper_age is not None and sleeper_age < _SLEEPER_CACHE_MAX_AGE_HOURS
+
+    if not force_refresh and sleeper_fresh:
+        sleeper_cached = load_platform_cache(SLEEPER_CACHE_PATH)
+        if sleeper_cached is not None:
+            sw, ss, su = sleeper_cached
+            all_weekly.extend(sw)
+            all_slots.extend(ss)
+            all_summaries.extend(su)
+    elif sleeper_cfg and sleeper_cfg.league_id:
+        sw, ss, su, _sd = fetch_all_sleeper_data(sleeper_cfg.league_id)
+        all_weekly.extend(sw)
+        all_slots.extend(ss)
+        all_summaries.extend(su)
+        save_platform_cache(sw, ss, su, SLEEPER_CACHE_PATH)
+
+    # ------------------------------------------------------------------
+    # 4. Save combined cache for deployed mode
     # ------------------------------------------------------------------
     if all_weekly or all_slots or all_summaries:
         save_to_disk(all_weekly, all_slots, all_summaries)
@@ -136,10 +163,16 @@ def load_draft_data(
 ) -> pd.DataFrame:
     """Load and combine draft data from all configured platforms.
 
-    Applies canonical name resolution and season deduplication.
+    Uses disk cache to avoid re-fetching.
     Returns a DataFrame with columns: manager, season, platform, round, pick,
     player_name, player_id, position, season_points.
     """
+    # Try cache first
+    cached = load_draft_cache()
+    if cached is not None:
+        drafts_df = _to_dataframe(cached, ["season", "pick", "manager"])
+        return _deduplicate_seasons(drafts_df)
+
     all_drafts: list[DraftPick] = []
 
     if sleeper_cfg and sleeper_cfg.league_id:
@@ -147,6 +180,9 @@ def load_draft_data(
 
     if espn_cfg and espn_cfg.is_configured:
         all_drafts.extend(fetch_all_espn_drafts(espn_cfg))
+
+    if all_drafts:
+        save_draft_cache(all_drafts)
 
     drafts_df = _to_dataframe(all_drafts, ["season", "pick", "manager"])
     drafts_df = _deduplicate_seasons(drafts_df)

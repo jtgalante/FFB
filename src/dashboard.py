@@ -466,6 +466,459 @@ def get_draft_data():
 
 
 # =============================================================================
+# POD MODE — Big visuals for podcast screen-sharing
+# =============================================================================
+
+POD_CSS = f"""
+<style>
+    .pod-stat {{
+        background: {COLORS["bg_card"]};
+        border: 1px solid {COLORS["border"]};
+        border-radius: 16px;
+        padding: 1.5rem 2rem;
+        text-align: center;
+        transition: border-color 0.2s ease;
+    }}
+    .pod-stat:hover {{
+        border-color: {COLORS["accent_cyan"]};
+    }}
+    .pod-stat .pod-label {{
+        color: {COLORS["text_muted"]};
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+        margin-bottom: 0.5rem;
+    }}
+    .pod-stat .pod-value {{
+        color: {COLORS["text_primary"]};
+        font-size: 2.8rem;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+    }}
+    .pod-stat .pod-sub {{
+        color: {COLORS["text_secondary"]};
+        font-size: 1rem;
+        margin-top: 0.4rem;
+        font-weight: 500;
+    }}
+    .pod-name {{
+        color: {COLORS["accent_cyan"]};
+        font-size: 3rem;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        margin-bottom: 0.25rem;
+    }}
+    .pod-title {{
+        color: {COLORS["text_muted"]};
+        font-size: 1rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }}
+    .pod-fact {{
+        background: {COLORS["bg_card"]};
+        border-left: 3px solid {COLORS["accent_cyan"]};
+        border-radius: 0 12px 12px 0;
+        padding: 1rem 1.5rem;
+        margin-bottom: 0.75rem;
+        color: {COLORS["text_primary"]};
+        font-size: 1.15rem;
+        font-weight: 500;
+        line-height: 1.5;
+    }}
+    .pod-fact .fact-num {{
+        color: {COLORS["accent_cyan"]};
+        font-weight: 800;
+        font-size: 1.3rem;
+    }}
+    .pod-rank {{
+        display: inline-block;
+        background: {COLORS["bg_secondary"]};
+        border: 1px solid {COLORS["border"]};
+        border-radius: 8px;
+        padding: 0.2rem 0.6rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: {COLORS["text_muted"]};
+        margin-left: 0.5rem;
+    }}
+    .pod-compare-card {{
+        background: {COLORS["bg_card"]};
+        border: 1px solid {COLORS["border"]};
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+    }}
+    .pod-compare-name {{
+        font-size: 1.8rem;
+        font-weight: 800;
+        margin-bottom: 0.5rem;
+    }}
+    .pod-vs {{
+        color: {COLORS["text_muted"]};
+        font-size: 2rem;
+        font-weight: 800;
+        padding: 1rem 0;
+    }}
+</style>
+"""
+
+
+def _pod_stat(label, value, sub=None, color=None):
+    border = f'border-left: 4px solid {color};' if color else ''
+    sub_html = f'<div class="pod-sub">{sub}</div>' if sub else ''
+    return f"""
+    <div class="pod-stat" style="{border}">
+        <div class="pod-label">{label}</div>
+        <div class="pod-value">{value}</div>
+        {sub_html}
+    </div>
+    """
+
+
+def _pod_fact(text):
+    return f'<div class="pod-fact">{text}</div>'
+
+
+def _compute_manager_facts(manager, w, summaries_df, all_stats, selected_seasons):
+    """Compute interesting facts for a specific manager."""
+    facts = []
+    mgr_data = w[w["manager"] == manager]
+    mgr_stats = all_stats[all_stats["manager"] == manager]
+
+    if mgr_stats.empty or mgr_data.empty:
+        return facts
+
+    row = mgr_stats.iloc[0]
+
+    # Rank computations
+    avg_rank = all_stats["avg_pts"].rank(ascending=False)
+    mgr_avg_rank = int(avg_rank[mgr_stats.index[0]])
+    win_rank = all_stats["win_pct"].rank(ascending=False)
+    mgr_win_rank = int(win_rank[mgr_stats.index[0]])
+
+    # Best and worst single weeks
+    best_week = mgr_data.loc[mgr_data["points"].idxmax()]
+    worst_week = mgr_data.loc[mgr_data["points"].idxmin()]
+    facts.append(
+        f'Best single week: <span class="fact-num">{best_week["points"]:.1f}</span> pts '
+        f'({int(best_week["season"])} Week {int(best_week["week"])})'
+    )
+    facts.append(
+        f'Worst single week: <span class="fact-num">{worst_week["points"]:.1f}</span> pts '
+        f'({int(worst_week["season"])} Week {int(worst_week["week"])})'
+    )
+
+    # Streaks
+    wins = mgr_data.sort_values(["season", "week"])["win"].tolist()
+    max_win_streak = max_streak(wins, True)
+    max_lose_streak = max_streak(wins, False)
+    facts.append(
+        f'Longest win streak: <span class="fact-num">{max_win_streak}</span> games'
+    )
+    facts.append(
+        f'Longest losing streak: <span class="fact-num">{max_lose_streak}</span> games'
+    )
+
+    # Championships/sackos
+    filtered_sum = summaries_df[
+        (summaries_df["manager"] == manager) &
+        (summaries_df["season"].isin(selected_seasons)) &
+        (summaries_df["finish"] > 0)
+    ]
+    champs = int((filtered_sum["finish"] == 1).sum())
+    n_teams = filtered_sum.groupby("season")["manager"].transform("count")
+    sackos = int((filtered_sum["finish"] == n_teams).sum())
+    if champs > 0:
+        facts.append(f'Championships: <span class="fact-num">{champs}</span>')
+    if sackos > 0:
+        facts.append(f'Sackos: <span class="fact-num">{sackos}</span>')
+
+    # Lucky wins vs unlucky losses
+    facts.append(
+        f'Lucky wins: <span class="fact-num">{int(row["lucky_wins"])}</span> | '
+        f'Unlucky losses: <span class="fact-num">{int(row["unlucky_losses"])}</span>'
+    )
+
+    # 100+ and sub-70 weeks
+    boom_weeks = int((mgr_data["points"] >= 120).sum())
+    bust_weeks = int((mgr_data["points"] < 70).sum())
+    if boom_weeks > 0:
+        facts.append(f'120+ point weeks: <span class="fact-num">{boom_weeks}</span>')
+    if bust_weeks > 0:
+        facts.append(f'Sub-70 point weeks: <span class="fact-num">{bust_weeks}</span>')
+
+    return facts
+
+
+def max_streak(results, target_value):
+    """Find the longest consecutive run of target_value in a list."""
+    streak = 0
+    best = 0
+    for v in results:
+        if v == target_value:
+            streak += 1
+            best = max(best, streak)
+        else:
+            streak = 0
+    return best
+
+
+def _render_pod_mode(w, s, summaries_df, selected_seasons, managers):
+    """Render the Pod Mode view — big, bold, screen-share friendly."""
+    st.markdown(POD_CSS, unsafe_allow_html=True)
+
+    st.markdown(f"""
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <div class="pod-title">POD MODE</div>
+        <div class="pod-name" style="font-size: 2rem;">Fantasy Football Analytics</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    pod_tabs = st.tabs(["Manager Spotlight", "Head to Head", "Leaderboard", "Records"])
+
+    all_stats = analytics.manager_weekly_stats(w)
+
+    # ==================== MANAGER SPOTLIGHT ====================
+    with pod_tabs[0]:
+        selected = st.selectbox("Select a manager", managers, key="pod_mgr")
+
+        if selected and not all_stats.empty:
+            row = all_stats[all_stats["manager"] == selected]
+            if not row.empty:
+                row = row.iloc[0]
+
+                st.markdown(f'<div class="pod-name" style="text-align: center;">{selected}</div>',
+                            unsafe_allow_html=True)
+
+                # Big stat cards
+                cols = st.columns(4, gap="medium")
+                with cols[0]:
+                    avg_rank = int(all_stats["avg_pts"].rank(ascending=False)[all_stats["manager"] == selected].values[0])
+                    st.markdown(_pod_stat(
+                        "Avg Points", f"{row['avg_pts']}",
+                        f"#{avg_rank} in league",
+                        COLORS["accent_cyan"]
+                    ), unsafe_allow_html=True)
+                with cols[1]:
+                    st.markdown(_pod_stat(
+                        "Record", f"{int(row['wins'])}-{int(row['losses'])}",
+                        f"{row['win_pct']}%",
+                        COLORS["accent_green"]
+                    ), unsafe_allow_html=True)
+                with cols[2]:
+                    st.markdown(_pod_stat(
+                        "Consistency", f"{row['cv']}%",
+                        "CV (lower = steadier)",
+                        COLORS["accent_blue"]
+                    ), unsafe_allow_html=True)
+                with cols[3]:
+                    # Elo
+                    elo_final, _ = analytics.elo_ratings(w)
+                    if not elo_final.empty:
+                        elo_row = elo_final[elo_final["manager"] == selected]
+                        if not elo_row.empty:
+                            elo_val = elo_row.iloc[0]["elo"]
+                            elo_rank = int(elo_final["elo"].rank(ascending=False)[elo_row.index[0]])
+                            st.markdown(_pod_stat(
+                                "Elo Rating", f"{elo_val:.0f}",
+                                f"#{elo_rank} in league",
+                                COLORS["accent_purple"]
+                            ), unsafe_allow_html=True)
+
+                st.markdown("<div style='height: 1.5rem'></div>", unsafe_allow_html=True)
+
+                # Interesting facts
+                section_header("Key Facts")
+                facts = _compute_manager_facts(selected, w, summaries_df, all_stats, selected_seasons)
+                for fact in facts:
+                    st.markdown(_pod_fact(fact), unsafe_allow_html=True)
+
+                # Scoring distribution
+                st.markdown("<div style='height: 1.5rem'></div>", unsafe_allow_html=True)
+                section_header("Scoring Distribution")
+                mgr_data = w[w["manager"] == selected]
+                fig = px.histogram(
+                    mgr_data, x="points", nbins=30,
+                    labels={"points": "Points Scored", "count": "Weeks"},
+                    color_discrete_sequence=[COLORS["accent_cyan"]],
+                )
+                fig.add_vline(x=row["avg_pts"], line_dash="dash",
+                              line_color=COLORS["accent_orange"],
+                              annotation_text=f"Avg: {row['avg_pts']}")
+                apply_chart_style(fig, height=350)
+                st.plotly_chart(fig, use_container_width=True)
+
+    # ==================== HEAD TO HEAD ====================
+    with pod_tabs[1]:
+        col1, col2 = st.columns(2, gap="large")
+        with col1:
+            mgr_a = st.selectbox("Manager A", managers, index=0, key="pod_h2h_a")
+        with col2:
+            mgr_b = st.selectbox("Manager B", managers,
+                                  index=min(1, len(managers) - 1), key="pod_h2h_b")
+
+        if mgr_a != mgr_b:
+            h2h = analytics.head_to_head(w, mgr_a, mgr_b)
+            if h2h and h2h["weeks_compared"] > 0:
+                # Big comparison layout
+                col_l, col_vs, col_r = st.columns([2, 1, 2], gap="medium")
+
+                with col_l:
+                    a_color = COLORS["accent_cyan"] if h2h["a_avg"] > h2h["b_avg"] else COLORS["text_muted"]
+                    st.markdown(f"""
+                    <div class="pod-compare-card">
+                        <div class="pod-compare-name" style="color: {a_color};">{mgr_a}</div>
+                        <div class="pod-value" style="color: {a_color};">{h2h['a_avg']}</div>
+                        <div class="pod-sub">avg pts/week</div>
+                        <div style="margin-top: 1rem; font-size: 2rem; font-weight: 800; color: {COLORS['text_primary']};">
+                            {h2h['a_higher']}
+                        </div>
+                        <div class="pod-sub">weeks scored higher</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                with col_vs:
+                    st.markdown(f"""
+                    <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                        <div class="pod-vs">VS</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                with col_r:
+                    b_color = COLORS["accent_cyan"] if h2h["b_avg"] > h2h["a_avg"] else COLORS["text_muted"]
+                    st.markdown(f"""
+                    <div class="pod-compare-card">
+                        <div class="pod-compare-name" style="color: {b_color};">{mgr_b}</div>
+                        <div class="pod-value" style="color: {b_color};">{h2h['b_avg']}</div>
+                        <div class="pod-sub">avg pts/week</div>
+                        <div style="margin-top: 1rem; font-size: 2rem; font-weight: 800; color: {COLORS['text_primary']};">
+                            {h2h['b_higher']}
+                        </div>
+                        <div class="pod-sub">weeks scored higher</div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                st.markdown(f"""
+                <div style="text-align: center; margin-top: 1rem; color: {COLORS['text_muted']}; font-size: 0.9rem;">
+                    {h2h['weeks_compared']} weeks compared | Avg margin: {abs(h2h['avg_diff']):.1f} pts
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("Select two different managers.")
+
+    # ==================== LEADERBOARD ====================
+    with pod_tabs[2]:
+        section_header("All-Time Rankings")
+        if not all_stats.empty:
+            metric = st.selectbox("Rank by", [
+                "avg_pts", "win_pct", "total_pts", "cv", "median_pts",
+            ], format_func=lambda x: {
+                "avg_pts": "Average Points", "win_pct": "Win %",
+                "total_pts": "Total Points", "cv": "Consistency (CV%)",
+                "median_pts": "Median Points",
+            }.get(x, x), key="pod_rank_metric")
+
+            ascending = metric == "cv"
+            ranked = all_stats.sort_values(metric, ascending=ascending).reset_index(drop=True)
+
+            for i, (_, row) in enumerate(ranked.iterrows()):
+                rank = i + 1
+                val = row[metric]
+                color = COLORS["accent_cyan"] if rank <= 3 else COLORS["text_primary"]
+                bg = COLORS["bg_card_hover"] if rank <= 3 else COLORS["bg_card"]
+                st.markdown(f"""
+                <div style="display: flex; align-items: center; gap: 1rem;
+                            background: {bg}; border: 1px solid {COLORS['border']};
+                            border-radius: 12px; padding: 1rem 1.5rem; margin-bottom: 0.5rem;">
+                    <div style="font-size: 2rem; font-weight: 800; color: {color};
+                                min-width: 3rem; text-align: center;">#{rank}</div>
+                    <div style="flex: 1;">
+                        <div style="font-size: 1.4rem; font-weight: 700; color: {color};">{row['manager']}</div>
+                        <div style="color: {COLORS['text_muted']}; font-size: 0.85rem;">
+                            {int(row['wins'])}-{int(row['losses'])} ({row['win_pct']}%)
+                        </div>
+                    </div>
+                    <div style="font-size: 2rem; font-weight: 800; color: {color};">{val}</div>
+                </div>
+                """, unsafe_allow_html=True)
+
+    # ==================== RECORDS ====================
+    with pod_tabs[3]:
+        section_header("League Records", "All-time highs and lows")
+
+        # Compute records
+        records = []
+
+        # Highest scoring week ever
+        best_week_idx = w["points"].idxmax()
+        bw = w.loc[best_week_idx]
+        records.append(("Highest Scoring Week", f"{bw['points']:.1f}", bw["manager"],
+                         f"{int(bw['season'])} Week {int(bw['week'])}"))
+
+        # Lowest scoring week
+        worst_week_idx = w["points"].idxmin()
+        ww = w.loc[worst_week_idx]
+        records.append(("Lowest Scoring Week", f"{ww['points']:.1f}", ww["manager"],
+                         f"{int(ww['season'])} Week {int(ww['week'])}"))
+
+        # Biggest blowout
+        w_temp = w.copy()
+        w_temp["margin"] = w_temp["points"] - w_temp["opponent_points"]
+        blowout_idx = w_temp["margin"].idxmax()
+        bl = w_temp.loc[blowout_idx]
+        records.append(("Biggest Blowout", f"{bl['margin']:.1f} pts", bl["manager"],
+                         f"{bl['points']:.1f} vs {bl['opponent_points']:.1f}"))
+
+        # Closest game
+        w_temp["abs_margin"] = w_temp["margin"].abs()
+        close_idx = w_temp[w_temp["abs_margin"] > 0]["abs_margin"].idxmin()
+        cl = w_temp.loc[close_idx]
+        winner = cl["manager"] if cl["win"] else "opponent"
+        records.append(("Closest Game", f"{cl['abs_margin']:.1f} pts", cl["manager"],
+                         f"{cl['points']:.1f} vs {cl['opponent_points']:.1f}"))
+
+        # Highest scoring matchup (combined)
+        w_temp["combined"] = w_temp["points"] + w_temp["opponent_points"]
+        high_combined_idx = w_temp["combined"].idxmax()
+        hc = w_temp.loc[high_combined_idx]
+        records.append(("Highest Scoring Matchup", f"{hc['combined']:.1f} combined", hc["manager"],
+                         f"{hc['points']:.1f} vs {hc['opponent_points']:.1f}"))
+
+        # Most wins in a season
+        season_stats = analytics.manager_season_stats(w)
+        if not season_stats.empty:
+            best_season_idx = season_stats["wins"].idxmax()
+            bs = season_stats.loc[best_season_idx]
+            records.append(("Most Wins (Single Season)", f"{int(bs['wins'])}-{int(bs['losses'])}",
+                             bs["manager"], f"{int(bs['season'])} season"))
+
+            # Best single season avg
+            best_avg_idx = season_stats["avg_pts"].idxmax()
+            ba = season_stats.loc[best_avg_idx]
+            records.append(("Best Season Average", f"{ba['avg_pts']}", ba["manager"],
+                             f"{int(ba['season'])} season"))
+
+        for title, value, name, context in records:
+            st.markdown(f"""
+            <div style="display: flex; align-items: center; gap: 1.5rem;
+                        background: {COLORS['bg_card']}; border: 1px solid {COLORS['border']};
+                        border-radius: 12px; padding: 1.25rem 1.5rem; margin-bottom: 0.75rem;">
+                <div style="flex: 1;">
+                    <div style="color: {COLORS['text_muted']}; font-size: 0.75rem; font-weight: 700;
+                                text-transform: uppercase; letter-spacing: 0.08em;">{title}</div>
+                    <div style="color: {COLORS['text_primary']}; font-size: 1.1rem; font-weight: 600;
+                                margin-top: 0.25rem;">{name}</div>
+                    <div style="color: {COLORS['text_muted']}; font-size: 0.85rem;">{context}</div>
+                </div>
+                <div style="font-size: 2.2rem; font-weight: 800; color: {COLORS['accent_cyan']};">{value}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+
+# =============================================================================
 # MAIN APP
 # =============================================================================
 
@@ -505,6 +958,8 @@ def main():
         </div>
         """, unsafe_allow_html=True)
 
+        pod_mode = st.toggle("Pod Mode", value=False, help="Big visuals for screen-sharing during podcast recording")
+
         st.markdown('<div class="sidebar-section-title">Filters</div>', unsafe_allow_html=True)
 
         selected_seasons = st.multiselect(
@@ -537,6 +992,11 @@ def main():
             s = s[~s["is_playoff"]]
 
     filtered_managers = sorted(w["manager"].unique())
+
+    # --- Pod Mode ---
+    if pod_mode:
+        _render_pod_mode(w, s, summaries_df, selected_seasons, filtered_managers)
+        return
 
     # --- Tabs ---
     tabs = st.tabs([

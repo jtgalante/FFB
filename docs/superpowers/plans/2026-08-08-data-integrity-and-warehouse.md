@@ -48,6 +48,7 @@ the capability. It moves ahead of the remaining tests.
     Task 3  scoring tests
     Task 4  replacement tests
     Task 6  wire validators into the fetch
+    Task 10 handoff datasheet     ← one SQLite file + dictionary
     Task 9  drop the phantom cli command
     Task 8  docs and full suite
 
@@ -76,6 +77,8 @@ produced plausible output with no error:
 - `src/draft/draftmath.py` — `slot_of`, `pick_of` (currently stranded in a script)
 - `src/draft/validate.py` — assertion helpers used by build scripts
 - `scripts/build_warehouse.py` — builds the five canonical tables
+- `scripts/export_datasheet.py` — bundles them as one SQLite file + dictionary
+- `tests/test_warehouse.py`, `tests/test_validate.py`, `tests/test_datasheet.py`
 
 **Modify:**
 - `pyproject.toml` — add pytest to dependencies
@@ -1046,6 +1049,251 @@ Expected: no output.
 ```bash
 git add CLAUDE.md docs/DATA.md
 git commit -m "docs: drop the bootstrap command, which never existed"
+```
+
+---
+
+## Task 10: The handoff datasheet
+
+James wants one clean artefact he could give to someone else doing data work.
+
+It cannot be a single flat table. The data has three grains — one row per draft
+pick, one row per team-week, one row per player-week — and flattening them means
+either repeating a manager's season across 2,400 pick rows or discarding
+information. Any competent recipient would immediately normalise it back.
+
+What it can be is **one file containing the tables, plus a dictionary that
+explains them and states the caveats**. SQLite is in the standard library, opens
+in every tool, and carries the schema with it.
+
+**Files:**
+- Create: `scripts/export_datasheet.py`
+- Create: `tests/test_datasheet.py`
+
+- [ ] **Step 1: Write the failing test**
+
+Create `tests/test_datasheet.py`:
+
+```python
+"""The exported datasheet must stand on its own."""
+import sqlite3
+from pathlib import Path
+
+import pytest
+
+DB = Path("data/export/ffb.sqlite")
+pytestmark = pytest.mark.skipif(
+    not DB.exists(),
+    reason="run `python3 -m scripts.export_datasheet` first")
+
+
+def _tables():
+    with sqlite3.connect(DB) as con:
+        return {r[0] for r in con.execute(
+            "SELECT name FROM sqlite_master WHERE type='table'")}
+
+
+def test_every_warehouse_table_is_present():
+    assert _tables() >= {"picks", "team_weeks", "player_weeks", "rosters",
+                         "players", "champions"}
+
+
+def test_picks_are_queryable_and_complete():
+    with sqlite3.connect(DB) as con:
+        n = con.execute("SELECT COUNT(*) FROM picks").fetchone()[0]
+    assert n == 2420
+
+
+def test_champions_cover_every_season():
+    with sqlite3.connect(DB) as con:
+        n = con.execute("SELECT COUNT(*) FROM champions").fetchone()[0]
+    assert n == 18
+
+
+def test_a_join_across_grains_works():
+    """The point of the handoff: picks join to champions without extra work."""
+    with sqlite3.connect(DB) as con:
+        rows = con.execute("""
+            SELECT p.manager, COUNT(*) FROM picks p
+            JOIN champions c ON c.season = p.season AND c.champion = p.manager
+            WHERE p.round = 1 GROUP BY p.manager
+        """).fetchall()
+    assert rows
+
+
+def test_dictionary_exists_and_documents_every_table():
+    doc = Path("data/export/DATA_DICTIONARY.md").read_text()
+    for t in ("picks", "team_weeks", "player_weeks", "rosters", "players",
+              "champions"):
+        assert f"### `{t}`" in doc
+```
+
+- [ ] **Step 2: Run it to verify it skips**
+
+Run: `python3 -m pytest tests/test_datasheet.py -v`
+Expected: 5 skipped, reason "run `python3 -m scripts.export_datasheet` first".
+
+- [ ] **Step 3: Write the exporter**
+
+Create `scripts/export_datasheet.py`:
+
+```python
+"""Export the warehouse as one self-contained SQLite file plus a dictionary.
+
+This is the hand-off artefact: give someone `data/export/` and they have the
+whole league, queryable, with the caveats written down. SQLite because it is in
+the standard library, opens in every tool, and carries its schema with it.
+
+Deliberately NOT one flat table. Three grains live here — pick, team-week,
+player-week — and flattening them would either repeat a manager's season across
+2,420 pick rows or lose information.
+"""
+
+from __future__ import annotations
+
+import sqlite3
+import sys
+from pathlib import Path
+
+import pandas as pd
+import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+WAREHOUSE = Path("data/warehouse")
+OUT = Path("data/export")
+DB = OUT / "ffb.sqlite"
+DOC = OUT / "DATA_DICTIONARY.md"
+HISTORY = Path("config/history.yaml")
+
+TABLES = {
+    "picks": ("One row per draft pick, 2010-2025.",
+              "Draft slot and pick number are corrected against the original "
+              "ClickyDraft boards where those exist; ESPN scrambled the slot in "
+              "5 of 7 verified seasons. Manager and round were always correct."),
+    "team_weeks": ("One row per manager per week, 2010-2025.",
+                   "`opponent` is RECONSTRUCTED by matching each manager's "
+                   "opponent_points to another manager's points in the same "
+                   "week. It resolves uniquely for 99.5% of rows; genuine score "
+                   "ties are left NULL rather than guessed."),
+    "player_weeks": ("One row per NFL player per week, 2021-2025.",
+                     "`pts` is recomputed under THIS league's scoring "
+                     "(6-point passing TDs, half PPR, -2 INT), not the "
+                     "source's default. Regular season only."),
+    "rosters": ("One row per started lineup slot per week, 2019-2025.",
+                "Starters only — bench players were never exported, so "
+                "'points left on the bench' is not answerable from this."),
+    "players": ("One row per NFL player.", "From the Sleeper player index; "
+                "covers currently-active players only."),
+    "champions": ("One row per season, 2008-2025.",
+                  "Confirmed by the league owner. Do NOT use platform data for "
+                  "this — ESPN records the wrong champion in at least three "
+                  "seasons because it cannot represent the dual-points format."),
+}
+
+
+def main() -> int:
+    OUT.mkdir(parents=True, exist_ok=True)
+    if DB.exists():
+        DB.unlink()
+
+    frames = {}
+    for name in ("picks", "team_weeks", "player_weeks", "rosters", "players"):
+        path = WAREHOUSE / f"{name}.parquet"
+        if not path.exists():
+            raise SystemExit(f"missing {path}; run scripts.build_warehouse first")
+        frames[name] = pd.read_parquet(path)
+
+    hist = yaml.safe_load(HISTORY.read_text())["seasons"]
+    frames["champions"] = pd.DataFrame(
+        [{"season": int(s), "champion": v.get("champion"),
+          "runner_up": v.get("runner_up"), "scoring": v.get("scoring"),
+          "source": v.get("source"), "verified": bool(v.get("verified"))}
+         for s, v in sorted(hist.items())])
+
+    con = sqlite3.connect(DB)
+    for name, df in frames.items():
+        df.to_sql(name, con, index=False)
+    con.commit()
+
+    L = ["# FFB League Data — Dictionary\n",
+         "One SQLite file, `ffb.sqlite`, containing the tables below. Every "
+         "figure is derived from league exports and public NFL data; nothing is "
+         "hand-entered except the champion list.\n",
+         "```bash",
+         "sqlite3 ffb.sqlite 'SELECT * FROM picks LIMIT 5;'",
+         "```\n",
+         "```python",
+         "import sqlite3, pandas as pd",
+         "con = sqlite3.connect('ffb.sqlite')",
+         "picks = pd.read_sql('SELECT * FROM picks', con)",
+         "```\n",
+         "**There is deliberately no single flat table.** Three grains live "
+         "here — pick, team-week, player-week. Joining them into one sheet "
+         "would repeat a manager's season across thousands of rows.\n",
+         "## The league\n",
+         "10 managers, the same ten since 2010. Half-PPR, **6-point passing "
+         "TDs**, no kickers or defences since 2024. The regular season is NOT "
+         "plain head-to-head: each week awards two points, one for winning your "
+         "matchup and one for finishing in the week's top five scorers.\n",
+         "## Tables\n"]
+    for name, (grain, caveat) in TABLES.items():
+        df = frames[name]
+        L.append(f"### `{name}`\n")
+        L.append(f"{grain} **{len(df):,} rows.**\n")
+        L.append(f"> {caveat}\n")
+        L.append("| column | type | ")
+        L.append("|---|---|")
+        for c, t in df.dtypes.items():
+            L.append(f"| `{c}` | {t} |")
+        L.append("")
+    DOC.write_text("\n".join(L))
+
+    print(f"Wrote {DB} ({DB.stat().st_size/1e6:.1f} MB)")
+    for name, df in frames.items():
+        print(f"   {name:<14} {len(df):>6} rows")
+    print(f"Wrote {DOC}")
+    con.close()
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
+```
+
+- [ ] **Step 4: Build it**
+
+Run: `python3 -m scripts.export_datasheet`
+Expected: reports the file size and a row count per table, ending with
+`champions  18 rows`.
+
+- [ ] **Step 5: Run the tests**
+
+Run: `python3 -m pytest tests/test_datasheet.py -v`
+Expected: 5 passed.
+
+- [ ] **Step 6: Prove it stands alone**
+
+Run:
+
+```bash
+python3 -c "
+import sqlite3
+con = sqlite3.connect('data/export/ffb.sqlite')
+print(con.execute('''
+  SELECT c.champion, COUNT(*) AS titles
+  FROM champions c GROUP BY c.champion ORDER BY titles DESC LIMIT 3
+''').fetchall())
+"
+```
+
+Expected: `[('Matt McCauley', 4), ...]`
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add scripts/export_datasheet.py tests/test_datasheet.py data/export
+git commit -m "feat: export the league as one self-contained SQLite datasheet"
 ```
 
 ---

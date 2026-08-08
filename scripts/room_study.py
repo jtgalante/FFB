@@ -1,8 +1,9 @@
 """16-year draft tendency study of the league room (2010-2025).
 
-Reads the committed league caches (data/draft_cache.json, data/espn_cache.json,
-data/sleeper_cache.json), canonicalizes manager names across platforms, and
-produces:
+Reads the canonical warehouse tables (`src.draft.warehouse`) for draft picks and
+weekly scores — manager canonicalization and draft slots are already resolved
+there. Season summaries have no warehouse table yet, so those alone still come
+from data/espn_cache.json and data/sleeper_cache.json. Produces:
 
   research/room_study_tables.md   generated tables (this script's output)
   research/room_tendencies.json   per-manager parameters for the draft
@@ -30,10 +31,10 @@ from statistics import median, mean
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.config import get_canonical_name  # noqa: E402
+from src.draft import warehouse as wh  # noqa: E402
 
-DRAFT_CACHE = Path("data/draft_cache.json")
-ESPN_CACHE = Path("data/espn_cache.json")
-SLEEPER_CACHE = Path("data/sleeper_cache.json")
+ESPN_CACHE = Path("data/espn_cache.json")      # season summaries only
+SLEEPER_CACHE = Path("data/sleeper_cache.json")  # season summaries only
 OUT_TABLES = Path("research/room_study_tables.md")
 OUT_JSON = Path("research/room_tendencies.json")
 
@@ -45,9 +46,14 @@ FIRST = "James Galante"             # the user; everyone else is an opponent
 
 
 def load_picks() -> list[dict]:
-    picks = json.loads(DRAFT_CACHE.read_text())["drafts"]
-    for p in picks:
-        p["mgr"] = get_canonical_name(p["platform"], p["manager"])
+    """Draft picks from the warehouse: `manager` and `slot` are already
+    resolved there, so nothing is canonicalized or slot-derived here."""
+    picks = [
+        {"season": int(r.season), "round": int(r.round), "pick": int(r.pick),
+         "slot": int(r.slot), "mgr": r.manager, "player_name": r.player_name,
+         "position": r.position}
+        for r in wh.picks().itertuples()
+    ]
     picks.sort(key=lambda p: (p["season"], p["pick"]))
     # Position rank at pick: nth player of that position off the board.
     counters: dict[tuple, int] = defaultdict(int)
@@ -90,45 +96,35 @@ def load_true_standings() -> dict[int, list[dict]]:
 
 def load_outcomes() -> list[dict]:
     """Season summaries with 2024-25 champion resolved from the week-17
-    playoff matchup (the cached finish field double-codes '1' those years)."""
+    playoff matchup (the cached finish field double-codes '1' those years).
+
+    Summaries are the one thing the warehouse does not carry, so they still
+    come from the caches. The week-17 pairing does not: `team_weeks.opponent`
+    already names each row's opponent, so no score-matching happens here.
+    """
     es = json.loads(ESPN_CACHE.read_text())["summaries"]
-    sl = json.loads(SLEEPER_CACHE.read_text())
+    sl = json.loads(SLEEPER_CACHE.read_text())["summaries"]
     rows = []
     for r in es:
         if r["finish"] > 0:  # espn cache holds placeholder rows for 2024-25
             rows.append({**r, "mgr": get_canonical_name("espn", r["manager"])})
-    # Resolve Sleeper-era champions: winner of the week-17 game involving the
-    # bracket runner-up (the unique finish=2 team).
-    runner_up = {r["season"]: r["manager"] for r in sl["summaries"] if r["finish"] == 2}
+    # Resolve Sleeper-era champions: the week-17 opponent of the bracket
+    # runner-up (the unique finish=2 team) is the title winner.
+    runner_up = {r["season"]: get_canonical_name("sleeper", r["manager"])
+                 for r in sl if r["finish"] == 2}
+    tw = wh.team_weeks()
+    finals = tw[(tw.week == 17) & tw.is_playoff]
     champs = {}
-    for w in sl["weekly"]:
-        yr = w["season"]
-        if w["week"] == 17 and w.get("is_playoff") and yr in runner_up:
-            if w["manager"] == runner_up[yr] and not w["win"]:
-                pass  # runner-up losing the final; champion is the opponent row
-            if w["win"] and w["manager"] != runner_up[yr]:
-                # did this winner play the runner-up?
-                pass
-    # Simpler: find runner-up's week-17 opponent via matching scores.
-    by_year_week = defaultdict(list)
-    for w in sl["weekly"]:
-        if w["week"] == 17:
-            by_year_week[w["season"]].append(w)
-    for yr, games in by_year_week.items():
-        ru = runner_up.get(yr)
-        ru_row = next((g for g in games if g["manager"] == ru), None)
-        if ru_row is None:
-            continue
-        opp = next((g for g in games if g["manager"] != ru
-                    and abs(g["points"] - ru_row["opponent_points"]) < 0.01
-                    and abs(g["opponent_points"] - ru_row["points"]) < 0.01), None)
-        if opp is not None:
-            champs[yr] = opp["manager"]
-    for r in sl["summaries"]:
+    for yr, ru in runner_up.items():
+        opp = finals.loc[(finals.season == yr) & (finals.manager == ru),
+                         "opponent"].tolist()
+        if len(opp) == 1 and opp[0] is not None:
+            champs[yr] = opp[0]
+    for r in sl:
         mgr = get_canonical_name("sleeper", r["manager"])
         finish = r["finish"]
         if r["season"] in champs:
-            is_champ = r["manager"] == champs[r["season"]]
+            is_champ = mgr == champs[r["season"]]
             if finish == 1 and not is_champ:
                 finish = 3  # was seed-1 fallback, not the title winner
             elif is_champ:
@@ -138,12 +134,9 @@ def load_outcomes() -> list[dict]:
 
 
 def draft_slots(picks) -> dict[tuple, int]:
-    """(season, mgr) -> draft slot, from round-1 pick order."""
-    slots = {}
-    for p in picks:
-        if p["round"] == 1:
-            slots[(p["season"], p["mgr"])] = p["pick"]
-    return slots
+    """(season, mgr) -> draft slot, straight off the warehouse `slot` column."""
+    return {(p["season"], p["mgr"]): p["slot"]
+            for p in picks if p["round"] == 1}
 
 
 def first_pos_round(picks, mgr, season, pos, nth=1):

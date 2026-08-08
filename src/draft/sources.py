@@ -75,7 +75,7 @@ NFLVERSE_SCHEDULE_URL = "https://raw.githubusercontent.com/nflverse/nfldata/mast
 # KNOWN GAP: once a player is placed on IR he drops off the weekly report
 # entirely, so a season-ending injury often shows FEWER report rows than a
 # nagging one. Absence from this data is not absence of injury -- pair it with
-# the appearance-shape features in scripts/games_model.py.
+# the appearance-shape features in scripts/availability_study.py.
 NFLVERSE_INJURY_URL = ("https://github.com/nflverse/nflverse-data/releases/"
                        "download/injuries/injuries_{year}.parquet")
 FF_PLAYERIDS_URL = "https://github.com/dynastyprocess/data/raw/master/files/db_playerids.csv"

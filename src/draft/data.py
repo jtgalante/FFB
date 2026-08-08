@@ -30,7 +30,8 @@ DRAFT_CACHE = Path("data/draft_cache.json")
 
 # Expected games played per season by position, out of 17. MEASURED, 2021-25,
 # over players actually drafted in rounds 1-8 of this league — the population
-# that was expected to start. Regenerate with `python -m scripts.availability`.
+# that was expected to start. Regenerate with
+# `python -m scripts.availability_study`.
 #
 # The previous values here were a guess and were optimistic at every position.
 # Note the population matters enormously: computed over all fantasy-relevant

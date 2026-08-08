@@ -31,9 +31,11 @@ import yaml
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.config import get_canonical_name  # noqa: E402
+from src.draft import warehouse as wh  # noqa: E402
 
+# Weekly scores come from the warehouse. The season summaries do not live there
+# yet, so `espn_recorded_champion` still reads the ESPN cache directly.
 ESPN_CACHE = Path("data/espn_cache.json")
-SLEEPER_CACHE = Path("data/sleeper_cache.json")
 HISTORY_PATH = Path("config/history.yaml")
 
 TOP_N_BONUS = 5  # a point for finishing in the week's top 5 scorers
@@ -50,16 +52,13 @@ def scoring_system(season: int) -> str:
 
 
 def load_weekly() -> dict[int, list[dict]]:
-    weeks: dict[int, list[dict]] = defaultdict(list)
-    for path, platform in ((ESPN_CACHE, "espn"), (SLEEPER_CACHE, "sleeper")):
-        if not path.exists():
-            continue
-        for w in json.loads(path.read_text())["weekly"]:
-            weeks[w["season"]].append({
-                **w, "mgr": get_canonical_name(platform, w["manager"]),
-                "platform": platform,
-            })
-    return dict(sorted(weeks.items()))
+    """season -> weekly rows, keyed on `mgr`. Read from the warehouse.
+
+    `team_weeks` already carries the canonical manager name and the resolved
+    opponent; the adapter renames `manager` to `mgr` for this module's callers
+    (`scripts.room_study`, `scripts.variance_study`).
+    """
+    return wh.weekly_by_season()
 
 
 def standings(rows: list[dict], dual_points: bool) -> list[dict]:

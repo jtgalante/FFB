@@ -266,9 +266,10 @@ def build(max_sharpness: int) -> Index:
                    ("Points he scores under this league's rules", _n(r["proj"])))
         if ADP.exists():
             adp = pd.read_parquet(ADP)
-            repl = {p: pr[pr.pos == p].nlargest(n, "proj")["proj"].iloc[-1]
-                    for p, n in (("QB", 10), ("RB", 27), ("WR", 30), ("TE", 13))
-                    if len(pr[pr.pos == p]) >= n}
+            # Derived, not hand-picked: with two FLEX slots the split between
+            # RB/WR/TE moves the whole board. See data.replacement_levels.
+            from src.draft.data import replacement_levels
+            repl = replacement_levels(pr, cfg)
             m = pr[pr.pos.isin(repl)].copy()
             m["vor"] = m.proj - m.pos.map(repl)
             m = (m.sort_values("vor", ascending=False).reset_index(drop=True)

@@ -41,7 +41,7 @@ Drafts, of 16, in which James Galante has taken exactly one quarterback: **15**
 Points the consensus projects for Josh Allen in 2026: **372.2**  
 Points he scores under this league's rules: **415.7**  
 
-Rank of Josh Allen among all players by value in this league: **15**  
+Rank of Josh Allen among all players by value in this league: **18**  
 Average pick at which the market takes him: **26**  
 
 Average picks at which the two most valuable tight ends on the board are taken: **44 and 45**  

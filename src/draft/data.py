@@ -97,6 +97,54 @@ class DataStore:
         return df
 
 
+def replacement_levels(proj: pd.DataFrame, cfg: dict) -> dict[str, float]:
+    """Replacement points per position, with FLEX allocated endogenously.
+
+    Picking replacement ranks by hand (RB27, WR30, TE13...) is guessing at how
+    the FLEX slots split, and with two FLEX slots that guess moves the whole
+    board. Here the split is derived instead: fill the dedicated slots, then
+    award the FLEX slots to the best remaining flex-eligible players regardless
+    of position. Replacement at a position is the best player there who never
+    reaches anyone's starting lineup.
+
+    Two consequences worth knowing, both visible in the 2026 board:
+
+    * RB and WR replacement converge (167.1 vs 163.6) because FLEX arbitrages
+      between them — whichever runs deeper absorbs the spare slots.
+    * TE does NOT converge. No tight end outscores the marginal flex RB/WR, so
+      TE wins zero FLEX slots and stays a 10-starter position with replacement
+      far below (138.5). That is why elite TE value over replacement is
+      genuinely high here, and why hand-picking TE13 understated it.
+    """
+    teams = cfg.get("teams", 10)
+    starters = cfg.get("starters", {})
+    flex_ok = cfg.get("flex_eligible", ["RB", "WR", "TE"])
+    n_flex = starters.get("FLEX", 0) * teams
+
+    dedicated = {p: n * teams for p, n in starters.items() if p != "FLEX"}
+    started: dict[str, set] = {}
+    spare = []
+    for pos, n in dedicated.items():
+        at_pos = proj[proj["pos"] == pos]
+        top = at_pos.nlargest(n, "proj")
+        started[pos] = set(top.index)
+        if pos in flex_ok:
+            spare.append(at_pos[~at_pos.index.isin(top.index)])
+
+    if spare and n_flex:
+        won = pd.concat(spare).nlargest(n_flex, "proj")
+        for pos in flex_ok:
+            started.setdefault(pos, set())
+            started[pos] |= set(won[won["pos"] == pos].index)
+
+    levels: dict[str, float] = {}
+    for pos in dedicated:
+        bench = proj[(proj["pos"] == pos) & (~proj.index.isin(started[pos]))]
+        if len(bench):
+            levels[pos] = float(bench.nlargest(1, "proj")["proj"].iloc[0])
+    return levels
+
+
 def _read_optional(parquet: Path, override_csv: Path, label: str) -> pd.DataFrame:
     """Read a fetched parquet, tolerating its absence if an override exists.
 

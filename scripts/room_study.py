@@ -82,9 +82,9 @@ def load_verified_history() -> dict[int, dict]:
 def load_true_standings() -> dict[int, list[dict]]:
     """Regular-season standings recomputed under the league's real
     dual-points system (1 pt per matchup win + 1 pt per weekly top-5 score)."""
-    from scripts.rebuild_standings import load_weekly, standings
+    from scripts.rebuild_standings import load_weekly, standings, scoring_system
     weekly = load_weekly()
-    return {season: standings(rows, dual_points=True)
+    return {season: standings(rows, dual_points=scoring_system(season) == "dual_points")
             for season, rows in weekly.items()}
 
 

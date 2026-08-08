@@ -23,9 +23,24 @@ starters:
 flex_eligible: [RB, WR, TE]
 
 regular_season_weeks: 14
+
+# Regular season scoring is NOT plain head-to-head. Each week awards two
+# points: one for winning your matchup, one for finishing in the week's top
+# five scorers. Records read out of 2 x weeks (e.g. 18-10 of 28).
+# Reconstructed and validated in scripts/rebuild_standings.py.
+standings_system: dual_points
+top_n_bonus: 5
+
+# Playoffs: 4 teams. Week 15 is a single-week semifinal; weeks 16-17 are a
+# TWO-WEEK aggregate final (combined score decides the title). The #1 seed
+# chooses which of the other three qualifiers it plays in the semifinal
+# (rule passed February 2023).
 playoff_weeks: [15, 16, 17]
-playoff_teams: 6
-playoff_byes: 2
+playoff_teams: 4
+playoff_byes: 0
+semifinal_weeks: [15]
+final_weeks: [16, 17]
+top_seed_picks_opponent: true
 
 # Weekly team-score distribution for a league opponent, estimated from
 # 2024-2025 matchups in data/sleeper_cache.json (regular season only).
@@ -33,9 +48,11 @@ opponent_weekly_mean: 100.7
 opponent_weekly_sd: 20.8
 
 scoring:
-  rec: 0.5                # half-PPR
+  rec: 0.5                # half-PPR (passed 6-1 in the 2016 rules vote)
   pass_yd: 0.04
-  pass_td: 4
+  # 6, not 4: the February 2023 proposal "Go back to four point passing TDs"
+  # FAILED (1 vote for, 8 against). UNCONFIRMED against current Sleeper settings.
+  pass_td: 6
   pass_int: -1
   rush_yd: 0.1
   rush_td: 6

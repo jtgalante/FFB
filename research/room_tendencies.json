@@ -14,7 +14,7 @@
       "run_join_rate": 0.375,
       "rebuy_rate": 0.147,
       "titles": 3,
-      "avg_seed": 6.06
+      "avg_seed": 5.94
     },
     "Brendan Gamble": {
       "QB1_round_median": 8.5,
@@ -28,7 +28,7 @@
       "run_join_rate": 0.542,
       "rebuy_rate": 0.087,
       "titles": 1,
-      "avg_seed": 5.56
+      "avg_seed": 5.44
     },
     "Brian Dzuris": {
       "QB1_round_median": 5.0,
@@ -56,7 +56,7 @@
       "run_join_rate": 0.419,
       "rebuy_rate": 0.066,
       "titles": 2,
-      "avg_seed": 4.75
+      "avg_seed": 4.5
     },
     "Donnie Darco": {
       "QB1_round_median": 7.0,
@@ -84,7 +84,7 @@
       "run_join_rate": 0.421,
       "rebuy_rate": 0.106,
       "titles": 1,
-      "avg_seed": 6.38
+      "avg_seed": 6.12
     },
     "Jonathan Wiggins": {
       "QB1_round_median": 5.5,
@@ -98,7 +98,7 @@
       "run_join_rate": 0.383,
       "rebuy_rate": 0.139,
       "titles": 1,
-      "avg_seed": 4.38
+      "avg_seed": 4.5
     },
     "Matt McCauley": {
       "QB1_round_median": 6.0,
@@ -112,7 +112,7 @@
       "run_join_rate": 0.404,
       "rebuy_rate": 0.132,
       "titles": 3,
-      "avg_seed": 4.94
+      "avg_seed": 5.38
     },
     "Stephen Rogers": {
       "QB1_round_median": 6.0,
@@ -126,7 +126,7 @@
       "run_join_rate": 0.41,
       "rebuy_rate": 0.118,
       "titles": 1,
-      "avg_seed": 5.75
+      "avg_seed": 5.88
     },
     "Tyler Clark": {
       "QB1_round_median": 6.0,
@@ -140,7 +140,7 @@
       "run_join_rate": 0.561,
       "rebuy_rate": 0.085,
       "titles": 1,
-      "avg_seed": 5.69
+      "avg_seed": 5.75
     }
   }
 }

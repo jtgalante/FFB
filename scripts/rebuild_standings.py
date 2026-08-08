@@ -38,6 +38,16 @@ HISTORY_PATH = Path("config/history.yaml")
 
 TOP_N_BONUS = 5  # a point for finishing in the week's top 5 scorers
 
+# The dual-points system (matchup win + weekly top-5 finish) was proposed by
+# Anthony Lettieri on 2013-11-18 and first played in 2014 week 1. Seasons
+# before that were plain head-to-head, so applying the bonus to them would
+# invent a competition the league never played.
+DUAL_POINTS_FROM = 2014
+
+
+def scoring_system(season: int) -> str:
+    return "dual_points" if season >= DUAL_POINTS_FROM else "h2h"
+
 
 def load_weekly() -> dict[int, list[dict]]:
     weeks: dict[int, list[dict]] = defaultdict(list)
@@ -119,8 +129,9 @@ def analyze() -> dict[int, dict]:
     weekly = load_weekly()
     report = {}
     for season, rows in weekly.items():
+        dual = scoring_system(season) == "dual_points"
         h2h_table = standings(rows, dual_points=False)
-        dual_table = standings(rows, dual_points=True)
+        dual_table = standings(rows, dual_points=dual)
         finals = final_week_games(rows)
         seed_of = {r["mgr"]: r["seed"] for r in dual_table}
         # The title game is most plausibly the final-week matchup whose two
@@ -175,8 +186,7 @@ def scaffold(report: dict[int, dict]) -> None:
             "runner_up": prior.get("runner_up", guess_runner),
             "regular_season_winner": prior.get(
                 "regular_season_winner", r["dual"][0]["mgr"]),
-            "scoring": prior.get(
-                "scoring", "dual_points" if r["platform"] == "espn" else "h2h"),
+            "scoring": prior.get("scoring", scoring_system(season)),
             "notes": prior.get("notes", ""),
         }
 

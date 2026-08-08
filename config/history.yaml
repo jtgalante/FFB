@@ -1,10 +1,14 @@
 # Verified league history — the authority for all outcome-linked analysis.
 #
-# The platform caches CANNOT be trusted for champions. The ESPN years ran a
-# dual-points regular season (1 pt for the matchup win + 1 pt for a weekly
-# top-5 score) that ESPN could not represent, and the playoff format lets the
-# regular-season winner choose its first-round opponent. ESPN's recorded
-# "champion" is wrong for at least 2012, 2017, and 2020.
+# The platform caches CANNOT be trusted for champions. From 2014 the league ran
+# a dual-points regular season (1 pt for the matchup win + 1 pt for a weekly
+# top-5 score) that ESPN could not represent, and since 2023 the regular-season
+# winner picks its first-round opponent. ESPN's recorded "champion" is wrong for
+# at least 2012, 2017, and 2020.
+#
+# `scoring` reflects the system actually in force: 2010-2013 were plain
+# head-to-head. The dual-points rule was proposed 2013-11-18 and first played in
+# 2014 week 1 — do not apply it to earlier seasons.
 #
 # Names are canonical (src/config.py MANAGER_ALIASES). Note that the manager
 # exported by ESPN as "Donnie Darco" is Peter Wallach.
@@ -28,7 +32,7 @@ seasons:
   2010:
     champion: Donnie Darco          # Peter Wallach
     runner_up: null
-    scoring: dual_points
+    scoring: h2h
     source: email_list
     verified: false
     notes: "Commissioner's all-time winners list, 2014-12-22: '2010: Peter'."
@@ -37,7 +41,7 @@ seasons:
     champion: Jonathan Wiggins
     runner_up: Stephen Rogers
     sacko: Matt McCauley
-    scoring: dual_points
+    scoring: h2h
     source: email
     verified: false
     notes: "Gaetz Bowl final 2011-12-20: 'Cromartie's Child Care 123.4 / Team
@@ -46,7 +50,7 @@ seasons:
   2012:
     champion: Bryan Cannon
     runner_up: null
-    scoring: dual_points
+    scoring: h2h
     source: email_list
     verified: false
     notes: "ESPN cache says Anthony Lettieri — WRONG. Commissioner's list
@@ -56,7 +60,7 @@ seasons:
     champion: Anthony Lettieri
     runner_up: null
     sacko: Donnie Darco
-    scoring: dual_points
+    scoring: h2h
     source: email_list
     verified: false
     notes: "Commissioner's list 2014-12-22: '2013: Tony'."

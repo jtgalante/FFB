@@ -1,0 +1,20 @@
+{
+  "season": 2009,
+  "source": "ClickyDraft board, supplied by James 2026-08-08 (labelled 2011; redated to 2009 from player evidence)",
+  "note": "16 rounds, K and DST era. NOT in data/draft_cache.json, whose archive begins 2010 - this EXTENDS the history rather than verifying it. Do NOT merge into draft_cache until all ten slots are attributed; a partial merge would introduce phantom managers into every per-manager analysis.",
+  "dating_evidence": "The 2009 NFL rookie class is drafted in rounds 7-15: Knowshon Moreno, Chris Wells, Percy Harvin, Hakeem Nicks, Shonn Greene, Mark Sanchez, LeSean McCoy, James Davis. Corroborating: Kurt Warner (retired after 2009) rostered, Brett Favre and Chad Pennington rostered, Tom Brady falling to 1.10 off his 2008 ACL, LaDainian Tomlinson still a round-2 pick, and 'Team Mark Sanchez' taking Mark Sanchez with the final pick of his rookie year.",
+  "slot_order": {
+    "1":  {"team_name": "Bourbon St Drunks",       "manager": null, "confidence": "unknown"},
+    "2":  {"team_name": "Team Koopa Troopa Beach", "manager": null, "confidence": "unknown"},
+    "3":  {"team_name": "Banshee Boardwalk",       "manager": null, "confidence": "unknown"},
+    "4":  {"team_name": "Toad's Turnpike",         "manager": null, "confidence": "unknown"},
+    "5":  {"team_name": "No More Neckbeards",      "manager": "James Galante",    "confidence": "stated by James, hedged"},
+    "6":  {"team_name": "Team Mark Sanchez",       "manager": "Anthony Lettieri", "confidence": "James's guess"},
+    "7":  {"team_name": "Defending Champion",      "manager": "Matt McCauley",    "confidence": "inferred: he won 2008 per config/history.yaml"},
+    "8":  {"team_name": "Team Burke",              "manager": "Brian Dzuris",     "confidence": "high: 'Ward Burke'/'Brittany Burke' are existing ESPN aliases"},
+    "9":  {"team_name": "Team Wallach",            "manager": "Donnie Darco",     "confidence": "high: Donnie Darco IS Peter Wallach"},
+    "10": {"team_name": "Team Clark",              "manager": "Tyler Clark",      "confidence": "high"}
+  },
+  "unassigned_managers": ["Bryan Cannon", "Stephen Rogers", "Brendan Gamble", "Jonathan Wiggins"],
+  "failed_approach": "Tried recovering the four unknowns by overlapping each 2009 team's players with each manager's 2010 picks. It fails its own validation: on the four slots whose identity is known it gets 0 of 4 right, putting Team Wallach with Lettieri (Darco scores 0) and Team Clark with Wiggins. Rebuy rates here are 4-10%, so ~1 repeat per 16 picks is expected by chance, and every 'best match' scored 2-3 against a runner-up of 2-3. There is no signal. Do not revive this approach."
+}

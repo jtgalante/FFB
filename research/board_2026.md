@@ -19,54 +19,54 @@ FLEX slots are won by **10 RB, 10 WR, 0 TE** — no tight end outscores the marg
 |---|---|---|---|---|---|---|
 | 1 | Jahmyr Gibbs | RB | RB1 | 337 | **170** | 1.4 |
 | 2 | Bijan Robinson | RB | RB1 | 332 | **165** | 2.1 |
-| 3 | Christian McCaffrey | RB | RB2 | 296 | **128** | 5.8 |
-| 4 | Jonathan Taylor | RB | RB2 | 290 | **123** | 6.6 |
-| 5 | Puka Nacua | WR | WR1 | 281 | **118** | 2.5 |
+| 3 | Christian McCaffrey | RB | RB2 | 296 | **128** | 5.9 |
+| 4 | Jonathan Taylor | RB | RB2 | 290 | **123** | 6.4 |
+| 5 | Puka Nacua | WR | WR1 | 281 | **118** | 2.6 |
 | 6 | Ja'Marr Chase | WR | WR1 | 275 | **112** | 4.0 |
-| 7 | Jaxon Smith-Njigba | WR | WR1 | 269 | **105** | 5.1 |
-| 8 | Amon-Ra St. Brown | WR | WR1 | 261 | **97** | 8.0 |
-| 9 | Derrick Henry | RB | RB3 | 264 | **97** | 10.8 |
-| 10 | De'Von Achane | RB | RB3 | 260 | **92** | 9.4 |
-| 11 | James Cook III | RB | RB3 | 254 | **86** | 11.2 |
-| 12 | Ashton Jeanty | RB | RB3 | 247 | **80** | 15.3 |
-| 13 | Chase Brown | RB | RB3 | 247 | **80** | 16.5 |
-| 14 | Saquon Barkley | RB | RB3 | 245 | **78** | 16.7 |
+| 7 | Jaxon Smith-Njigba | WR | WR1 | 269 | **105** | 5.2 |
+| 8 | Amon-Ra St. Brown | WR | WR1 | 261 | **97** | 8.1 |
+| 9 | Derrick Henry | RB | RB3 | 264 | **97** | 10.7 |
+| 10 | De'Von Achane | RB | RB3 | 260 | **92** | 9.9 |
+| 11 | James Cook III | RB | RB3 | 254 | **86** | 11.4 |
+| 12 | Ashton Jeanty | RB | RB3 | 247 | **80** | 15.2 |
+| 13 | Chase Brown | RB | RB3 | 247 | **80** | 16.4 |
+| 14 | Saquon Barkley | RB | RB3 | 245 | **78** | 17.1 |
 | 15 | Drake London | WR | WR2 | 238 | **74** | 10.6 |
 | 16 | Josh Jacobs | RB | RB3 | 239 | **72** | 21.9 |
 | 17 | Omarion Hampton | RB | RB3 | 238 | **71** | 21.5 |
-| 18 | Josh Allen | QB | QB1 | 416 | **70** | 25.7 |
-| 19 | Breece Hall | RB | RB3 | 230 | **62** | 25.9 |
-| 20 | Trey McBride | TE | TE1 | 200 | **62** | 44.1 |
+| 18 | Josh Allen | QB | QB1 | 416 | **70** | 25.1 |
+| 19 | Breece Hall | RB | RB3 | 230 | **62** | 26.1 |
+| 20 | Trey McBride | TE | TE1 | 200 | **62** | 44.8 |
 | 21 | Kenneth Walker III | RB | RB3 | 228 | **61** | 26.1 |
-| 22 | Jeremiyah Love | RB | RB3 | 228 | **61** | 27.8 |
-| 23 | Rashee Rice | WR | WR3 | 224 | **61** | 12.6 |
-| 24 | CeeDee Lamb | WR | WR3 | 224 | **60** | 13.2 |
-| 25 | Brock Bowers | TE | TE1 | 195 | **57** | 45.1 |
-| 26 | Justin Jefferson | WR | WR3 | 220 | **57** | 14.5 |
-| 27 | Kyren Williams | RB | RB3 | 223 | **56** | 31.0 |
-| 28 | Cam Skattebo | RB | RB3 | 221 | **54** | 31.4 |
-| 29 | Javonte Williams | RB | RB3 | 218 | **51** | 35.5 |
+| 22 | Jeremiyah Love | RB | RB3 | 228 | **61** | 27.9 |
+| 23 | Rashee Rice | WR | WR3 | 224 | **61** | 12.4 |
+| 24 | CeeDee Lamb | WR | WR3 | 224 | **60** | 12.8 |
+| 25 | Brock Bowers | TE | TE1 | 195 | **57** | 45.4 |
+| 26 | Justin Jefferson | WR | WR3 | 220 | **57** | 14.6 |
+| 27 | Kyren Williams | RB | RB3 | 223 | **56** | 31.1 |
+| 28 | Cam Skattebo | RB | RB3 | 221 | **54** | 31.6 |
+| 29 | Javonte Williams | RB | RB3 | 218 | **51** | 35.6 |
 | 30 | A.J. Brown | WR | WR3 | 213 | **49** | 19.2 |
-| 31 | George Pickens | WR | WR3 | 211 | **47** | 20.7 |
-| 32 | Chris Olave | WR | WR3 | 210 | **47** | 22.9 |
+| 31 | George Pickens | WR | WR3 | 211 | **47** | 20.5 |
+| 32 | Chris Olave | WR | WR3 | 210 | **47** | 23.0 |
 | 33 | Nico Collins | WR | WR3 | 207 | **44** | 22.9 |
-| 34 | Travis Etienne Jr. | RB | RB3 | 210 | **43** | 38.6 |
+| 34 | Travis Etienne Jr. | RB | RB3 | 210 | **43** | 38.8 |
 | 35 | Zay Flowers | WR | WR3 | 203 | **39** | 25.7 |
-| 36 | D'Andre Swift | RB | RB3 | 205 | **38** | 43.3 |
-| 37 | Bucky Irving | RB | RB3 | 204 | **37** | 41.2 |
-| 38 | Colston Loveland | TE | TE2 | 170 | **32** | 67.6 |
-| 39 | Garrett Wilson | WR | WR3 | 194 | **30** | 29.4 |
-| 40 | Malik Nabers | WR | WR3 | 194 | **30** | 35.2 |
-| 41 | DeVonta Smith | WR | WR3 | 193 | **29** | 32.5 |
-| 42 | Emeka Egbuka | WR | WR3 | 192 | **28** | 33.2 |
-| 43 | Drake Maye | QB | QB2 | 373 | **28** | 49.0 |
+| 36 | D'Andre Swift | RB | RB3 | 205 | **38** | 43.0 |
+| 37 | Bucky Irving | RB | RB3 | 204 | **37** | 42.4 |
+| 38 | Colston Loveland | TE | TE2 | 170 | **32** | 67.9 |
+| 39 | Garrett Wilson | WR | WR3 | 194 | **30** | 29.5 |
+| 40 | Malik Nabers | WR | WR3 | 194 | **30** | 34.9 |
+| 41 | DeVonta Smith | WR | WR3 | 193 | **29** | 32.3 |
+| 42 | Emeka Egbuka | WR | WR3 | 192 | **28** | 33.0 |
+| 43 | Drake Maye | QB | QB2 | 373 | **28** | 48.8 |
 | 44 | Quinshon Judkins | RB | RB3 | 194 | **27** | 47.9 |
-| 45 | Bhayshul Tuten | RB | RB3 | 193 | **26** | 49.0 |
-| 46 | Lamar Jackson | QB | QB2 | 372 | **26** | 53.4 |
-| 47 | Tetairoa McMillan | WR | WR3 | 188 | **25** | 35.9 |
-| 48 | Davante Adams | WR | WR3 | 188 | **24** | 39.5 |
-| 49 | Tee Higgins | WR | WR3 | 186 | **22** | 39.0 |
-| 50 | Tyler Warren | TE | TE2 | 160 | **22** | 71.6 |
+| 45 | Bhayshul Tuten | RB | RB3 | 193 | **26** | 49.9 |
+| 46 | Lamar Jackson | QB | QB2 | 372 | **26** | 52.9 |
+| 47 | Tetairoa McMillan | WR | WR3 | 188 | **25** | 35.8 |
+| 48 | Davante Adams | WR | WR3 | 188 | **24** | 39.6 |
+| 49 | Tee Higgins | WR | WR3 | 186 | **22** | 38.6 |
+| 50 | Tyler Warren | TE | TE2 | 160 | **22** | 71.9 |
 
 ## What the simulation actually drafts
 
@@ -75,11 +75,11 @@ My picks maximise marginal lineup value against replacement-level alternatives, 
 | pick | most frequent choices |
 |---|---|
 | 1 | **Jahmyr Gibbs** 100% |
-| 20 | **Amon-Ra St. Brown** 14%, **Chase Brown** 10%, **Jaxon Smith-Njigba** 9%, **Saquon Barkley** 9% |
-| 21 | **Josh Allen** 22%, **Josh Jacobs** 19%, **Drake London** 13%, **Omarion Hampton** 13% |
-| 40 | **Trey McBride** 67%, **Brock Bowers** 27%, **Josh Allen** 3%, **Jeremiyah Love** 1% |
-| 41 | **Travis Etienne Jr.** 18%, **D'Andre Swift** 17%, **Javonte Williams** 12%, **Bucky Irving** 7% |
-| 60 | **Jayden Daniels** 32%, **Joe Burrow** 8%, **Jalen Hurts** 7%, **Lamar Jackson** 6% |
+| 20 | **Amon-Ra St. Brown** 15%, **Jaxon Smith-Njigba** 10%, **Drake London** 9%, **Josh Jacobs** 8% |
+| 21 | **Josh Allen** 21%, **Josh Jacobs** 17%, **Omarion Hampton** 14%, **Drake London** 12% |
+| 40 | **Trey McBride** 72%, **Brock Bowers** 23%, **Josh Allen** 2%, **Breece Hall** 1% |
+| 41 | **D'Andre Swift** 18%, **Travis Etienne Jr.** 15%, **Javonte Williams** 11%, **Bucky Irving** 9% |
+| 60 | **Jayden Daniels** 28%, **Joe Burrow** 13%, **Jalen Hurts** 8%, **Lamar Jackson** 6% |
 
 ## What survives to each of my picks
 
@@ -93,74 +93,74 @@ Slot 1 of 10: picks 1, 20, 21, 40, 41, 60.
 |---|---|---|---|---|
 | Jahmyr Gibbs | RB | 170 | 1.4 | 100% |
 | Bijan Robinson | RB | 165 | 2.1 | 100% |
-| Christian McCaffrey | RB | 128 | 5.8 | 100% |
-| Jonathan Taylor | RB | 123 | 6.6 | 100% |
-| Puka Nacua | WR | 118 | 2.5 | 100% |
+| Christian McCaffrey | RB | 128 | 5.9 | 100% |
+| Jonathan Taylor | RB | 123 | 6.4 | 100% |
+| Puka Nacua | WR | 118 | 2.6 | 100% |
 | Ja'Marr Chase | WR | 112 | 4.0 | 100% |
-| Jaxon Smith-Njigba | WR | 105 | 5.1 | 100% |
-| Amon-Ra St. Brown | WR | 97 | 8.0 | 100% |
+| Jaxon Smith-Njigba | WR | 105 | 5.2 | 100% |
+| Amon-Ra St. Brown | WR | 97 | 8.1 | 100% |
 
 ### Pick 20
 
 | player | pos | VOR | ADP | P(available) |
 |---|---|---|---|---|
-| Amon-Ra St. Brown | WR | 97 | 8.0 | 19% |
-| Ashton Jeanty | RB | 80 | 15.3 | 15% |
-| Chase Brown | RB | 80 | 16.5 | 18% |
-| Saquon Barkley | RB | 78 | 16.7 | 19% |
-| Drake London | WR | 74 | 10.6 | 30% |
-| Josh Jacobs | RB | 72 | 21.9 | 41% |
+| Amon-Ra St. Brown | WR | 97 | 8.1 | 20% |
+| Chase Brown | RB | 80 | 16.4 | 17% |
+| Saquon Barkley | RB | 78 | 17.1 | 20% |
+| Drake London | WR | 74 | 10.6 | 28% |
+| Josh Jacobs | RB | 72 | 21.9 | 40% |
 | Omarion Hampton | RB | 71 | 21.5 | 38% |
-| Josh Allen | QB | 70 | 25.7 | 100% |
+| Josh Allen | QB | 70 | 25.1 | 100% |
+| Breece Hall | RB | 62 | 26.1 | 61% |
 
 ### Pick 21
 
 | player | pos | VOR | ADP | P(available) |
 |---|---|---|---|---|
-| Drake London | WR | 74 | 10.6 | 21% |
-| Josh Jacobs | RB | 72 | 21.9 | 34% |
-| Omarion Hampton | RB | 71 | 21.5 | 33% |
-| Josh Allen | QB | 70 | 25.7 | 97% |
-| Breece Hall | RB | 62 | 25.9 | 61% |
-| Trey McBride | TE | 62 | 44.1 | 100% |
-| Kenneth Walker III | RB | 61 | 26.1 | 64% |
-| Jeremiyah Love | RB | 61 | 27.8 | 70% |
+| Drake London | WR | 74 | 10.6 | 19% |
+| Josh Jacobs | RB | 72 | 21.9 | 32% |
+| Omarion Hampton | RB | 71 | 21.5 | 34% |
+| Josh Allen | QB | 70 | 25.1 | 96% |
+| Breece Hall | RB | 62 | 26.1 | 61% |
+| Trey McBride | TE | 62 | 44.8 | 100% |
+| Kenneth Walker III | RB | 61 | 26.1 | 62% |
+| Jeremiyah Love | RB | 61 | 27.9 | 68% |
 
 ### Pick 40
 
 | player | pos | VOR | ADP | P(available) |
 |---|---|---|---|---|
-| Trey McBride | TE | 62 | 44.1 | 70% |
-| Brock Bowers | TE | 57 | 45.1 | 74% |
-| Travis Etienne Jr. | RB | 43 | 38.6 | 28% |
-| D'Andre Swift | RB | 38 | 43.3 | 46% |
-| Bucky Irving | RB | 37 | 41.2 | 36% |
-| Colston Loveland | TE | 32 | 67.6 | 100% |
-| Garrett Wilson | WR | 30 | 29.4 | 24% |
-| Malik Nabers | WR | 30 | 35.2 | 48% |
+| Trey McBride | TE | 62 | 44.8 | 75% |
+| Brock Bowers | TE | 57 | 45.4 | 76% |
+| Travis Etienne Jr. | RB | 43 | 38.8 | 24% |
+| D'Andre Swift | RB | 38 | 43.0 | 45% |
+| Bucky Irving | RB | 37 | 42.4 | 41% |
+| Colston Loveland | TE | 32 | 67.9 | 100% |
+| Garrett Wilson | WR | 30 | 29.5 | 25% |
+| Malik Nabers | WR | 30 | 34.9 | 48% |
 
 ### Pick 41
 
 | player | pos | VOR | ADP | P(available) |
 |---|---|---|---|---|
-| Brock Bowers | TE | 57 | 45.1 | 47% |
-| Travis Etienne Jr. | RB | 43 | 38.6 | 28% |
-| D'Andre Swift | RB | 38 | 43.3 | 46% |
-| Bucky Irving | RB | 37 | 41.2 | 36% |
-| Colston Loveland | TE | 32 | 67.6 | 100% |
-| Garrett Wilson | WR | 30 | 29.4 | 24% |
-| Malik Nabers | WR | 30 | 35.2 | 48% |
-| DeVonta Smith | WR | 29 | 32.5 | 36% |
+| Brock Bowers | TE | 57 | 45.4 | 53% |
+| Travis Etienne Jr. | RB | 43 | 38.8 | 24% |
+| D'Andre Swift | RB | 38 | 43.0 | 45% |
+| Bucky Irving | RB | 37 | 42.4 | 41% |
+| Colston Loveland | TE | 32 | 67.9 | 100% |
+| Garrett Wilson | WR | 30 | 29.5 | 25% |
+| Malik Nabers | WR | 30 | 34.9 | 48% |
+| DeVonta Smith | WR | 29 | 32.3 | 36% |
 
 ### Pick 60
 
 | player | pos | VOR | ADP | P(available) |
 |---|---|---|---|---|
-| Colston Loveland | TE | 32 | 67.6 | 79% |
-| Tyler Warren | TE | 22 | 71.6 | 89% |
-| Joe Burrow | QB | 21 | 55.6 | 16% |
-| Jayden Daniels | QB | 18 | 69.7 | 77% |
-| Kyle Pitts Sr. | TE | 17 | 84.6 | 100% |
-| Jalen Hurts | QB | 16 | 74.2 | 91% |
-| TreVeyon Henderson | RB | 16 | 55.4 | 20% |
-| Alec Pierce | WR | 12 | 48.0 | 25% |
+| Colston Loveland | TE | 32 | 67.9 | 77% |
+| Tyler Warren | TE | 22 | 71.9 | 90% |
+| Joe Burrow | QB | 21 | 57.9 | 23% |
+| Jayden Daniels | QB | 18 | 68.6 | 72% |
+| Kyle Pitts Sr. | TE | 17 | 83.5 | 100% |
+| Jalen Hurts | QB | 16 | 74.8 | 92% |
+| TreVeyon Henderson | RB | 16 | 55.7 | 19% |
+| Alec Pierce | WR | 12 | 47.0 | 20% |

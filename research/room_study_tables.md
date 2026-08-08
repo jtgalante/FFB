@@ -29,13 +29,13 @@ Titles are from `config/history.yaml` (verified against league email). Seed and 
 
 | Manager | Median rd (16y) | Range | Median rd (21-25) | Avg QB rank taken |
 |---|---|---|---|---|
-| Brian Dzuris | 5.0 | 2–12 | 4 | 5.2 |
+| Brian Dzuris | 5.0 | 2–12 | 4 | 5.3 |
 | James Galante | 5.0 | 1–9 | 6 | 3.4 |
 | Jonathan Wiggins | 5.5 | 1–12 | 5 | 4.1 |
 | Matt McCauley | 6.0 | 3–13 | 8 | 5 |
 | Stephen Rogers | 6.0 | 1–12 | 5 | 4.9 |
-| Tyler Clark | 6.0 | 3–11 | 6 | 5.4 |
-| Donnie Darco | 7.0 | 1–15 | 10 | 6.4 |
+| Tyler Clark | 6.0 | 3–11 | 6 | 5.5 |
+| Donnie Darco | 7.0 | 1–15 | 10 | 6.3 |
 | Anthony Lettieri | 8.0 | 1–12 | 6 | 7.2 |
 | Brendan Gamble | 8.5 | 2–15 | 7 | 7.1 |
 | Bryan Cannon | 9.0 | 2–13 | 9 | 7.4 |
@@ -49,7 +49,7 @@ Titles are from `config/history.yaml` (verified against league email). Seed and 
 | Bryan Cannon | 12 | 11–16 | 13 | 12.6 |
 | Donnie Darco | 12 | 10–15 | 13 | 13.2 |
 | Matt McCauley | 12.0 | 11–14 | 13 | 13.7 |
-| Anthony Lettieri | 13 | 9–15 | 14 | 12.4 |
+| Anthony Lettieri | 13 | 9–15 | 14 | 12.3 |
 | James Galante | 13 | 13–13 | — | 18 |
 | Jonathan Wiggins | 13.0 | 11–15 | 13.0 | 13.4 |
 | Stephen Rogers | 13.0 | 9–15 | 13.5 | 14.5 |
@@ -66,7 +66,7 @@ Titles are from `config/history.yaml` (verified against league email). Seed and 
 | Stephen Rogers | 7.5 | 2–11 | 8 | 5.6 |
 | Tyler Clark | 7.5 | 2–10 | 9 | 4.8 |
 | Anthony Lettieri | 8.0 | 3–14 | 8 | 6.1 |
-| Brian Dzuris | 8 | 3–15 | 8.5 | 6.6 |
+| Brian Dzuris | 8 | 3–15 | 8.5 | 6.7 |
 | Brendan Gamble | 10.0 | 4–15 | 10 | 6.7 |
 | Donnie Darco | 10.0 | 4–16 | 5 | 7.4 |
 
@@ -104,16 +104,16 @@ Titles are from `config/history.yaml` (verified against league email). Seed and 
 
 | Manager | Opportunities | Joined | Rate | vs room |
 |---|---|---|---|---|
-| Brendan Gamble | 63 | 38 | 60% | 1.38x |
-| Brian Dzuris | 51 | 25 | 49% | 1.12x |
-| Tyler Clark | 63 | 31 | 49% | 1.12x |
-| Donnie Darco | 62 | 28 | 45% | 1.03x |
-| Bryan Cannon | 64 | 27 | 42% | 0.96x |
-| Matt McCauley | 63 | 26 | 41% | 0.94x |
-| Anthony Lettieri | 57 | 23 | 40% | 0.92x |
-| Stephen Rogers | 55 | 21 | 38% | 0.87x |
-| Jonathan Wiggins | 67 | 25 | 37% | 0.85x |
-| James Galante | 54 | 18 | 33% | 0.76x |
+| Brendan Gamble | 64 | 38 | 59% | 1.36x |
+| Brian Dzuris | 51 | 26 | 51% | 1.17x |
+| Donnie Darco | 65 | 32 | 49% | 1.13x |
+| Tyler Clark | 57 | 25 | 44% | 1.01x |
+| Bryan Cannon | 64 | 28 | 44% | 1.00x |
+| Anthony Lettieri | 57 | 23 | 40% | 0.93x |
+| Matt McCauley | 64 | 26 | 41% | 0.93x |
+| Jonathan Wiggins | 65 | 25 | 38% | 0.88x |
+| Stephen Rogers | 57 | 20 | 35% | 0.81x |
+| James Galante | 53 | 17 | 32% | 0.74x |
 
 ## Player loyalty (their last-year player drafted again by anyone; 10% = random)
 
@@ -138,7 +138,7 @@ Positions taken in the first 19 picks (i.e. gone before pick 20/21 from slot 1),
 |---|---|---|---|---|---|---|---|
 | 2021 | 14 | 4 | 0 | 1 | 28 | 52 | 12 |
 | 2022 | 13 | 6 | 0 | 0 | 38 | 56 | 20 |
-| 2023 | 11 | 7 | 0 | 1 | 28 | 36 | 13 |
+| 2023 | 11 | 7 | 0 | 1 | 28 | 32 | 13 |
 | 2024 | 11 | 8 | 0 | 0 | 26 | 37 | 41 |
 | 2025 | 12 | 7 | 0 | 0 | 25 | 37 | 28 |
 
@@ -181,7 +181,7 @@ Position share by round (2021-2025, QB/RB/WR/TE picks):
 | 2020 | Donnie Darco | 5 | RB → WR → WR → WR → RB → TE | 7 | derived |
 | 2021 | Stephen Rogers | 10 | RB → RB → WR → WR → WR → RB | 8 |  |
 | 2022 | Tyler Clark | 5 | RB → WR → RB → WR → RB → QB | 6 |  |
-| 2023 | Matt McCauley | 7 | WR → RB → RB → TE → WR → RB | 13 |  |
+| 2023 | Matt McCauley | 3 | WR → RB → RB → TE → WR → RB | 13 |  |
 | 2024 | James Galante | 7 | RB → WR → RB → WR → QB → RB | 5 | bracket |
 | 2025 | Bryan Cannon | 1 | RB → WR → WR → TE → RB → WR | 11 | bracket |
 
@@ -191,16 +191,16 @@ Champions' first QB: median round 8.0; 13 of 16 waited until round 5 or later. T
 
 | Manager | 2021 | 2022 | 2023 | 2024 | 2025 |
 |---|---|---|---|---|---|
-| Anthony Lettieri | 4 | 6 | 4 | 3 | 6 |
+| Anthony Lettieri | 4 | 6 | 7 | 3 | 6 |
 | Brendan Gamble | 6 | 9 | 1 | 9 | 7 |
-| Brian Dzuris | 2 | 7 | 5 | 8 | 4 |
+| Brian Dzuris | 2 | 7 | 4 | 8 | 4 |
 | Bryan Cannon | 7 | 4 | 8 | 2 | 1 |
-| Donnie Darco | 8 | 8 | 2 | 1 | 3 |
-| James Galante | 9 | 10 | 3 | 7 | 10 |
-| Jonathan Wiggins | 5 | 3 | 9 | 6 | 8 |
-| Matt McCauley | 1 | 1 | 7 | 4 | 5 |
-| Stephen Rogers | 10 | 2 | 6 | 10 | 2 |
-| Tyler Clark | 3 | 5 | 10 | 5 | 9 |
+| Donnie Darco | 8 | 8 | 9 | 1 | 3 |
+| James Galante | 9 | 10 | 6 | 7 | 10 |
+| Jonathan Wiggins | 5 | 3 | 5 | 6 | 8 |
+| Matt McCauley | 1 | 1 | 3 | 4 | 5 |
+| Stephen Rogers | 10 | 2 | 10 | 10 | 2 |
+| Tyler Clark | 3 | 5 | 2 | 5 | 9 |
 
 ## Outcomes by draft slot (16 seasons, dual-points seeding)
 
@@ -209,12 +209,12 @@ With 16 seasons spread over 10 slots this is ~16 observations per slot — sugge
 | Slot | Seasons | Avg reg-season seed | Titles |
 |---|---|---|---|
 | 1 | 16 | 5.81 | 1 |
-| 2 | 16 | 6.62 | 1 |
-| 3 | 16 | 4.75 | 0 |
-| 4 | 16 | 5.56 | 1 |
-| 5 | 16 | 4.25 | 3 |
-| 6 | 16 | 6 | 3 |
-| 7 | 16 | 4.44 | 3 |
+| 2 | 16 | 6.88 | 1 |
+| 3 | 16 | 4.5 | 1 |
+| 4 | 16 | 5.19 | 1 |
+| 5 | 16 | 4.38 | 3 |
+| 6 | 16 | 6.31 | 3 |
+| 7 | 16 | 4.88 | 2 |
 | 8 | 16 | 5.56 | 1 |
-| 9 | 16 | 6.56 | 1 |
-| 10 | 16 | 5.44 | 2 |
+| 9 | 16 | 6.5 | 1 |
+| 10 | 16 | 5 | 2 |

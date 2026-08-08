@@ -1,5 +1,16 @@
 # The Room: 16 Years of Draft Tendencies (2010–2025)
 
+> **Section 2 is under revision — do not cite it yet.** The champion labels it
+> used come from the ESPN export, and ESPN could not represent this league's
+> actual rules: the regular season awarded a point for the head-to-head win
+> *and* a point for a weekly top-5 score, and the playoff seeding lets the
+> regular-season winner choose its opponent. The recorded "champion" is
+> therefore often not the real one. `scripts/rebuild_standings.py` now
+> reconstructs the true dual-points standings (validated exactly against the
+> commissioner's own 2019 and 2023 sheets), and verified champions are being
+> collected into `config/history.yaml`. Sections 1, 3, and 4 use draft picks
+> only and are unaffected.
+
 **Data:** all 2,420 draft picks, 2010–2025, same 10 managers every season; final
 standings for all 16 seasons; weekly lineup data 2019–2025. Generated tables and
 the exact methodology live in `room_study_tables.md` (regenerate with

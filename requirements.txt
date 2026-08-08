@@ -1,6 +1,16 @@
+# Dashboard
 espn-api>=0.38.0
-requests>=2.31.0
-pandas>=2.1.0
 streamlit>=1.30.0
 plotly>=5.18.0
+
+# Shared
+requests>=2.31.0
+pandas>=2.1.0
 python-dotenv>=1.0.0
+
+# Draft engine
+numpy>=1.26.0
+pyarrow>=14.0.0
+PyYAML>=6.0
+lxml>=5.0.0          # pandas.read_html parser for FantasyPros scrape fallback
+html5lib>=1.1

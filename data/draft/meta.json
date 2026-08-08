@@ -1,0 +1,49 @@
+{
+  "source": "live",
+  "season": 2026,
+  "fetched_at": 1786148698.0474494,
+  "history_years": [
+    2021,
+    2022,
+    2023,
+    2024,
+    2025
+  ],
+  "status": [
+    {
+      "level": "WARN",
+      "source": "FantasyPros API",
+      "detail": "no FANTASYPROS_API_KEY set; using scrape"
+    },
+    {
+      "level": "FAIL",
+      "source": "projections",
+      "detail": "HTTPSConnectionPool(host='www.fantasypros.com', port=443): Max retries exceeded with url: /nfl/projections/qb.php?week=draft&scoring=HALF (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))\n         -> put projections.csv in data/inputs/ instead"
+    },
+    {
+      "level": "WARN",
+      "source": "ADP (Sleeper)",
+      "detail": "HTTPSConnectionPool(host='api.sleeper.app', port=443): Max retries exceeded with url: /v1/players/nfl/adp/half_ppr/2026 (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+    },
+    {
+      "level": "FAIL",
+      "source": "ADP",
+      "detail": "HTTPSConnectionPool(host='www.fantasypros.com', port=443): Max retries exceeded with url: /nfl/adp/half-point-ppr-overall.php (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))\n         -> put adp.csv in data/inputs/ instead"
+    },
+    {
+      "level": "FAIL",
+      "source": "weekly points (nflverse)",
+      "detail": "Could not fetch nflverse weekly stats for 2025: 404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_2025.parquet"
+    },
+    {
+      "level": "WARN",
+      "source": "player index (Sleeper)",
+      "detail": "HTTPSConnectionPool(host='api.sleeper.app', port=443): Max retries exceeded with url: /v1/players/nfl (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+    },
+    {
+      "level": "WARN",
+      "source": "bye weeks",
+      "detail": "404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/schedules/schedules.csv; season sim will randomize byes"
+    }
+  ]
+}

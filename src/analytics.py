@@ -9,6 +9,8 @@ from __future__ import annotations
 import pandas as pd
 import numpy as np
 
+from src import league_data
+
 
 def manager_weekly_stats(weekly_df: pd.DataFrame) -> pd.DataFrame:
     """Per-manager aggregate stats across all seasons.
@@ -159,28 +161,95 @@ def lucky_unlucky(weekly_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def head_to_head(weekly_df: pd.DataFrame, manager_a: str, manager_b: str) -> dict:
-    """Compare two managers across all shared weeks."""
+    """The REAL record between two managers — games they actually played.
+
+    This used to merge the two managers on (season, week) and compare their
+    scores in the same week whether or not they faced each other, because the
+    platform exports record your opponent's *score* but never their *name*.
+    That was the best available answer; it no longer is. The warehouse's
+    `team_weeks` carries a reconstructed `opponent` column, so the meetings are
+    now known and this compares only those.
+
+    Scope follows `weekly_df`: the matchups are inner-joined onto whatever
+    (season, week, manager) rows the caller passed, so the dashboard's season
+    filter and its "exclude playoffs" toggle still apply. Weeks where the
+    opponent could not be resolved — genuine score ties, 2 rows in 2498 — drop
+    out rather than being guessed at.
+
+    Returns a dict. The keys the old version returned are all still present and
+    still mean the obvious thing, but they are now measured over real meetings
+    rather than shared weeks:
+
+        manager_a, manager_b
+        weeks_compared  — meetings between the two (alias: `meetings`)
+        a_higher/b_higher — head-to-head wins (alias: `a_wins`/`b_wins`)
+        a_avg, b_avg, a_std, b_std, avg_diff — over those meetings only
+
+    Added: `ties`, `a_points_for`/`b_points_for` (totals in the series),
+    `a_record`/`b_record` (display strings), and `biggest_blowout` — a dict of
+    winner/loser/season/week/margin/winner_points/loser_points, or None if the
+    two have never met.
+    """
     if weekly_df.empty:
         return {}
 
-    a = weekly_df[weekly_df["manager"] == manager_a][["season", "week", "points"]].rename(
-        columns={"points": "pts_a"})
-    b = weekly_df[weekly_df["manager"] == manager_b][["season", "week", "points"]].rename(
-        columns={"points": "pts_b"})
+    scope = weekly_df[["season", "week", "manager"]].drop_duplicates()
+    tw = league_data.team_weeks()
+    tw = tw.merge(scope, on=["season", "week", "manager"], how="inner")
 
-    merged = a.merge(b, on=["season", "week"])
+    met = tw[(tw["manager"] == manager_a) & (tw["opponent"] == manager_b)].copy()
+    met = met.rename(columns={"points": "pts_a", "opponent_points": "pts_b"})
+
+    if met.empty:
+        return {
+            "manager_a": manager_a, "manager_b": manager_b,
+            "weeks_compared": 0, "meetings": 0,
+            "a_higher": 0, "b_higher": 0, "a_wins": 0, "b_wins": 0, "ties": 0,
+            "a_avg": 0.0, "b_avg": 0.0, "a_std": 0.0, "b_std": 0.0,
+            "avg_diff": 0.0, "a_points_for": 0.0, "b_points_for": 0.0,
+            "a_record": "0-0", "b_record": "0-0", "biggest_blowout": None,
+        }
+
+    a_wins = int((met["pts_a"] > met["pts_b"]).sum())
+    b_wins = int((met["pts_b"] > met["pts_a"]).sum())
+    ties = int((met["pts_a"] == met["pts_b"]).sum())
+
+    met["margin"] = met["pts_a"] - met["pts_b"]
+    worst = met.loc[met["margin"].abs().idxmax()]
+    a_won_it = worst["margin"] > 0
+    blowout = {
+        "winner": manager_a if a_won_it else manager_b,
+        "loser": manager_b if a_won_it else manager_a,
+        "season": int(worst["season"]),
+        "week": int(worst["week"]),
+        "margin": round(abs(float(worst["margin"])), 2),
+        "winner_points": round(float(worst["pts_a" if a_won_it else "pts_b"]), 2),
+        "loser_points": round(float(worst["pts_b" if a_won_it else "pts_a"]), 2),
+    }
+
+    def _record(w: int, l: int) -> str:
+        return f"{w}-{l}" + (f"-{ties}" if ties else "")
 
     return {
         "manager_a": manager_a,
         "manager_b": manager_b,
-        "weeks_compared": len(merged),
-        "a_higher": int((merged["pts_a"] > merged["pts_b"]).sum()),
-        "b_higher": int((merged["pts_b"] > merged["pts_a"]).sum()),
-        "a_avg": round(merged["pts_a"].mean(), 2),
-        "b_avg": round(merged["pts_b"].mean(), 2),
-        "a_std": round(merged["pts_a"].std(), 2),
-        "b_std": round(merged["pts_b"].std(), 2),
-        "avg_diff": round((merged["pts_a"] - merged["pts_b"]).mean(), 2),
+        "weeks_compared": len(met),
+        "meetings": len(met),
+        "a_higher": a_wins,
+        "b_higher": b_wins,
+        "a_wins": a_wins,
+        "b_wins": b_wins,
+        "ties": ties,
+        "a_record": _record(a_wins, b_wins),
+        "b_record": _record(b_wins, a_wins),
+        "a_avg": round(met["pts_a"].mean(), 2),
+        "b_avg": round(met["pts_b"].mean(), 2),
+        "a_std": round(met["pts_a"].std(), 2) if len(met) > 1 else 0.0,
+        "b_std": round(met["pts_b"].std(), 2) if len(met) > 1 else 0.0,
+        "avg_diff": round(met["margin"].mean(), 2),
+        "a_points_for": round(met["pts_a"].sum(), 2),
+        "b_points_for": round(met["pts_b"].sum(), 2),
+        "biggest_blowout": blowout,
     }
 
 
@@ -250,41 +319,76 @@ def season_points_ranking(weekly_df: pd.DataFrame) -> pd.DataFrame:
 
 
 def championships_and_sackos(summaries_df: pd.DataFrame) -> pd.DataFrame:
-    """Count championships (#1 finish) and sackos (last place) per manager.
+    """Championships and sackos per manager, from the VERIFIED record.
 
     Returns DataFrame: manager, championships, sackos, seasons_played,
-    best_finish, worst_finish, avg_finish.
+    best_finish, worst_finish, avg_finish — the same columns as before, but
+    two of them now mean something different, and honestly:
+
+    * `championships` / `sackos` no longer come from ESPN's `finish` field.
+      They come from `config/history.yaml` via `src.league_data`. `finish`
+      describes a competition this league never played: the regular season
+      awards two points a week (matchup win + top-5 weekly score) and the #1
+      seed picks its own semifinal opponent, neither of which ESPN can
+      represent. Counting `finish == 1` was wrong for 7 of 10 managers. See
+      `src/league_data.py` for the full argument.
+    * `best_finish` / `worst_finish` / `avg_finish` are now **regular-season
+      seeds** under the league's real dual-points scoring, recomputed by
+      `scripts.rebuild_standings` (which matches the commissioner's own
+      spreadsheets exactly for 2019 and 2023). They are NOT final playoff
+      placings — no trustworthy record of those exists beyond the champion,
+      runner-up and sacko, so the honest substitute is where a team finished
+      the part of the season that was actually measured. `seasons_played`
+      counts seasons with weekly data, likewise.
+
+    `summaries_df` is now used only for its season list, so the dashboard's
+    season filter keeps working. Two caveats it cannot express:
+
+    1. The weekly exports start in 2010 but the title record starts in 2008,
+       so a summaries frame covering "everything" still omits Matt McCauley's
+       2008 and Bryan Cannon's 2009 titles. `league_data.title_counts()` with
+       no argument is the all-time number.
+    2. A sacko is only recorded for the 7 seasons where a source names one, so
+       `sackos` is a floor. The last dual-points seed is deliberately not
+       substituted — the sacko is a toilet-bowl outcome, not the bottom of the
+       regular-season table.
     """
-    if summaries_df.empty:
+    if summaries_df.empty or "season" not in summaries_df.columns:
         return pd.DataFrame()
 
-    df = summaries_df.copy()
-
-    # Filter out finish=0 (missing data from ESPN for recent seasons)
-    valid = df[df["finish"] > 0].copy()
-
-    if valid.empty:
+    seasons = sorted({int(s) for s in summaries_df["season"].dropna().unique()})
+    if not seasons:
         return pd.DataFrame()
 
-    n_teams_per_season = valid.groupby("season")["manager"].transform("count")
+    titles = league_data.title_counts(seasons)[
+        ["manager", "championships", "sackos"]]
 
-    valid["is_champ"] = valid["finish"] == 1
-    # Sacko = last place (finish equals number of teams in that season)
-    valid["is_sacko"] = valid["finish"] == n_teams_per_season
+    table = league_data.dual_points_standings()
+    table = table[table["season"].isin(seasons)]
 
-    result = valid.groupby("manager").agg(
-        championships=("is_champ", "sum"),
-        sackos=("is_sacko", "sum"),
-        seasons_played=("season", "count"),
-        best_finish=("finish", "min"),
-        worst_finish=("finish", "max"),
-        avg_finish=("finish", "mean"),
-    ).reset_index()
+    if table.empty:
+        # Only pre-2010 seasons selected: titles are known, seeds are not.
+        result = titles.copy()
+        for col in ("seasons_played", "best_finish", "worst_finish"):
+            result[col] = 0
+        result["avg_finish"] = float("nan")
+    else:
+        seeds = table.groupby("manager").agg(
+            seasons_played=("season", "nunique"),
+            best_finish=("seed", "min"),
+            worst_finish=("seed", "max"),
+            avg_finish=("seed", "mean"),
+        ).reset_index()
+        result = titles.merge(seeds, on="manager", how="outer")
+        for col in ("championships", "sackos", "seasons_played",
+                    "best_finish", "worst_finish"):
+            result[col] = result[col].fillna(0).astype(int)
+        result["avg_finish"] = result["avg_finish"].round(1)
 
-    result["avg_finish"] = result["avg_finish"].round(1)
-
+    result = result[["manager", "championships", "sackos", "seasons_played",
+                     "best_finish", "worst_finish", "avg_finish"]]
     return result.sort_values(["championships", "avg_finish"],
-                               ascending=[False, True])
+                              ascending=[False, True]).reset_index(drop=True)
 
 
 # =========================================================================

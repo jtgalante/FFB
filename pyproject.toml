@@ -11,6 +11,10 @@ dependencies = [
     "plotly>=5.18.0",
     "python-dotenv>=1.0.0",
     "pytest>=8.0.0",
+    # src.league_data reads config/history.yaml and data/warehouse/*.parquet,
+    # so the dashboard now needs both at import time.
+    "PyYAML>=6.0",
+    "pyarrow>=14.0.0",
 ]
 
 [project.scripts]

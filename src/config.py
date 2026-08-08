@@ -24,16 +24,16 @@ class ESPNConfig:
 # Manager name mapping: canonical name -> {platform: platform_name}
 # Update this after first data pull to unify names across platforms
 MANAGER_ALIASES: dict[str, dict[str, list[str] | str]] = {
-    "James Galante": {"espn": "James Galante", "sleeper": "jtgalante"},
-    "Bryan Cannon": {"espn": "Bryan Cannon", "sleeper": "BCannon21"},
-    "Matt McCauley": {"espn": "Matt McCauley", "sleeper": "mmccauley24"},
-    "Tyler Clark": {"espn": "Tyler Clark", "sleeper": "dtylerclark"},
-    "Stephen Rogers": {"espn": "Stephen Rogers", "sleeper": "CaptRogers22"},
-    "Anthony Lettieri": {"espn": "Anthony Lettieri", "sleeper": "Tonethar"},
-    "Brendan Gamble": {"espn": ["Brendan Gamble", "Britney Bear"], "sleeper": "bcg3k"},
-    "Brian Dzuris": {"espn": ["Brian Dzuris", "Brittany Dzuris", "Brittany Burke", "Ward Burke"], "sleeper": "dizzy21"},
-    "Donnie Darco": {"espn": ["Donnie Darco ", "Peter Wallach"], "sleeper": "pdwall"},
-    "Jonathan Wiggins": {"espn": "Jonathan Wiggins", "sleeper": "jdub504"},
+    "James Galante": {"espn": "James Galante", "sleeper": "jtgalante", "clickydraft": ["Jamesie Poo", "TSLA Bears", "James"]},
+    "Bryan Cannon": {"espn": "Bryan Cannon", "sleeper": "BCannon21", "clickydraft": ["Bryan", "Commish", "Id Eat Another"]},
+    "Matt McCauley": {"espn": "Matt McCauley", "sleeper": "mmccauley24", "clickydraft": ["Run CMC", "Matty"]},
+    "Tyler Clark": {"espn": "Tyler Clark", "sleeper": "dtylerclark", "clickydraft": ["Tyler", "TyTy", "Ty Ty"]},
+    "Stephen Rogers": {"espn": "Stephen Rogers", "sleeper": "CaptRogers22", "clickydraft": ["Biscuit", "League Char(mpion)", "Bisc"]},
+    "Anthony Lettieri": {"espn": "Anthony Lettieri", "sleeper": "Tonethar", "clickydraft": ["Tony", "Big Penis 24", "Tonethar"]},
+    "Brendan Gamble": {"espn": ["Brendan Gamble", "Britney Bear"], "sleeper": "bcg3k", "clickydraft": ["Brendan", "Princess G", "BGams"]},
+    "Brian Dzuris": {"espn": ["Brian Dzuris", "Brittany Dzuris", "Brittany Burke", "Ward Burke"], "sleeper": "dizzy21", "clickydraft": ["Dizzy", "Dizzed in my", "Brizzy"]},
+    "Donnie Darco": {"espn": ["Donnie Darco ", "Peter Wallach"], "sleeper": "pdwall", "clickydraft": ["Three Petes", "Jail Bait", "Here Kitty Kitty"]},
+    "Jonathan Wiggins": {"espn": "Jonathan Wiggins", "sleeper": "jdub504", "clickydraft": ["J Dub", "Jdub", "JDub"]},
 }
 
 

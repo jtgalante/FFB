@@ -21,6 +21,7 @@ The draft is imminent — August 2026.
 | `research/league_rules.md` | Dated rule timeline with quoted evidence |
 | `config/league.yaml` | League settings + engine parameters |
 | `config/history.yaml` | Verified champions per season (the platform data is wrong) |
+| `data/clickydraft_cache.json` | Golden-source draft history: 2020–2022, correct slot order, team→manager map |
 | `docs/DATA.md` | How to get projections/ADP onto the engine |
 
 ## The league (verified — see research/league_rules.md)
@@ -120,6 +121,15 @@ environment's network policy.
 - Manager names are canonicalized via `MANAGER_ALIASES` in `src/config.py`.
   Note "Donnie Darco" in the ESPN export is **Peter Wallach**.
 - Never trust the platform caches for champions — use `config/history.yaml`.
+- Never trust the platform caches for **draft slot order** — Clicky Draft is
+  the golden source. ESPN/Sleeper shuffle slot assignments on import. See
+  `docs/DATA.md`. **Clicky Draft data is now ingested** in
+  `data/clickydraft_cache.json` (2020–2022, 450 picks) with correct slot
+  assignments, snake pick numbers, team-name-to-manager mappings, and per-season
+  slot order metadata. `MANAGER_ALIASES` in `src/config.py` includes all
+  `clickydraft` team names. ESPN slot order is wrong in 8–9 of 10 slots per
+  season. Known anomaly: Donnie Darco's 2020 roster has "BAL DEF" listed twice
+  (rounds 12 and 14) — one is likely Jerry Jeudy (per ESPN cross-ref).
 - A separate **Gaetz Dynasty** league also exists on Sleeper from 2024. It is a
   different competition; never mix its data in.
 - Regenerate research with `python -m scripts.room_study`,

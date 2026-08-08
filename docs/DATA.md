@@ -118,6 +118,23 @@ but `api.sleeper.app/v1/players/nfl/adp/half_ppr/2026` **404s** (that endpoint
 is undocumented and appears not to exist), so today it would have to come from
 your own mock drafts.
 
+## Draft slot order: Clicky Draft is the golden source
+
+The league drafts live on **Clicky Draft**. When the draft is imported to ESPN
+(2010–2023) or Sleeper (2024+), the snake slot assignments sometimes get
+reshuffled — the rosters are correct but the slot numbers disagree. This was
+confirmed by cross-checking the 2023 Clicky Draft board against the ESPN cache:
+all 150 player-to-manager assignments matched, but 8 of 10 managers had
+different slot numbers.
+
+**Rule: when there is a discrepancy in snake position between Clicky Draft and
+the platform cache, Clicky Draft wins.** The platform data is reconstructed or
+re-ordered on import; Clicky Draft reflects the actual live draft.
+
+This matters for the opponent model (who drafts from which slot affects the
+pick-gap analysis and availability simulations) and for any historical
+slot-level analysis.
+
 ## Name matching
 
 Everything joins on a normalized `name|position` key (accents, punctuation,

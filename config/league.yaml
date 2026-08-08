@@ -1,0 +1,54 @@
+# League configuration for the draft engine.
+#
+# Roster/season structure below was read from this repo's cached Sleeper data
+# (data/sleeper_cache.json, data/draft_cache.json): 10 teams, half-PPR,
+# starters QB/RB/RB/WR/WR/TE/FLEX/FLEX, no K or DST, 15 draft rounds,
+# 14-week regular season, playoffs weeks 15-17.
+#
+# ASSUMED (verify in Sleeper league settings, then correct here if needed):
+#   - pass_td: 4          (Sleeper default; league could use 6)
+#   - playoff_teams: 6, playoff_byes: 2   (Sleeper default bracket)
+
+teams: 10
+my_draft_slot: 1          # James holds pick 1.1 in 2026
+rounds: 15
+
+starters:
+  QB: 1
+  RB: 2
+  WR: 2
+  TE: 1
+  FLEX: 2                 # RB/WR/TE eligible
+
+flex_eligible: [RB, WR, TE]
+
+regular_season_weeks: 14
+playoff_weeks: [15, 16, 17]
+playoff_teams: 6
+playoff_byes: 2
+
+# Weekly team-score distribution for a league opponent, estimated from
+# 2024-2025 matchups in data/sleeper_cache.json (regular season only).
+opponent_weekly_mean: 100.7
+opponent_weekly_sd: 20.8
+
+scoring:
+  rec: 0.5                # half-PPR
+  pass_yd: 0.04
+  pass_td: 4
+  pass_int: -1
+  rush_yd: 0.1
+  rush_td: 6
+  rec_yd: 0.1
+  rec_td: 6
+  fum_lost: -2
+  two_pt: 2
+
+# --- Engine parameters (Section 7 of the spec) ---
+lambda_risk: 0.5              # utility = mean - lambda * sd (fast objective)
+opponent_adp_noise: 4.0       # sigma in picks for opponent ADP noise
+n_draft_sims: 200             # forward draft sims per candidate
+n_season_sims: 1000           # season Monte Carlo sims for full evaluation
+n_season_sims_fast: 60        # season sims used inside the draft-sim loop
+replacement_baseline_method: worst_starter   # worst_starter | bench_top
+ceiling_weight: 0.25          # late-round tilt toward high-variance players

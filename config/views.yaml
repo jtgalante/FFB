@@ -1,0 +1,20 @@
+# Manual player views (tilts on top of consensus projections).
+#
+# Consensus projections are the prior; entries here adjust them:
+#   adjusted = projection * (1 + tilt_pct/100 * confidence)
+#
+# tilt_pct:    percent change to season projection (+10 = 10% better than consensus)
+# confidence:  0..1, shrinks the tilt toward zero (0.5 = half conviction)
+#
+# Players listed here are always included as candidates at your picks.
+#
+# Example:
+# views:
+#   - player: Bijan Robinson
+#     tilt_pct: 8
+#     confidence: 0.7
+#   - player: Some Overrated Guy
+#     tilt_pct: -15
+#     confidence: 0.5
+
+views: []

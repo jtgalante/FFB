@@ -60,6 +60,18 @@ def check_seasons_balanced(df: pd.DataFrame, seasons: list[int], label: str,
             f"({dict(counts)}). Check for a schema difference between years.")
 
 
+def check_win_consistency(df: pd.DataFrame, label: str) -> pd.DataFrame:
+    """Return the rows whose `win` flag contradicts the two scores.
+
+    Unlike every other check here this one REPORTS rather than raises. The
+    disagreement is a defect in the platform export itself, not in our joins:
+    the archive records games the loser is flagged as having won. We cannot
+    fix it without rewriting league history, so the caller warns and carries
+    on. Ties are consistent with win=False.
+    """
+    return df[df["win"] != (df["points"] > df["opponent_points"])]
+
+
 def check_draft_complete(df: pd.DataFrame, teams: int, rounds: int) -> None:
     """Per season: picks are unique, contiguous, one per manager per round."""
     for season, g in df.groupby("season"):

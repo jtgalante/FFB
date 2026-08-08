@@ -16,9 +16,9 @@ target that this room reliably leaves on the table.
 | pick | take | why |
 |---|---|---|
 | **1** | Jahmyr Gibbs | 170 VOR, the largest gap on the board |
-| **20 / 21** | Josh Allen + best RB/WR | Allen is 91% available and the market prices him for a different scoring system |
-| **40 / 41** | Trey McBride + best RB/WR | 85% available; TE replacement sits 28 points below RB/WR |
-| **60 / 61** | best available | QB and TE are both already solved |
+| **20 / 21** | the two best RB/WR — *unless* the best is worth <~70 VOR, then Josh Allen | Allen is ~100% available but only the right call ~22% of the time; the rivals there are worth 71–74 |
+| **40 / 41** | **Trey McBride or Brock Bowers**, plus the best RB/WR | a top-two TE lands here in **94%** of sims and nothing else in the window is close |
+| **60 / 61** | a quarterback if you skipped one (53% of sims), else best available | Daniels / Burrow / Hurts / Jackson are the fallback, and it is a good one |
 
 Everything below is why, and where it could be wrong.
 
@@ -85,7 +85,9 @@ Two consequences do real work in what follows:
 one point per week of expected scoring is worth +1.72pp of title probability,
 while the entire realistic range of weekly volatility is worth +0.59pp. Expected
 points and championship probability rank candidates almost identically here, and
-the first is far cheaper. Set `lambda_risk` and `ceiling_weight` to ~0.
+the first is far cheaper. `lambda_risk` is set to **-0.017** (the exchange rate
+the study actually implies — variance is very faintly helpful, and far too
+faintly to act on) and `ceiling_weight` to **0**.
 
 ## 5. Findings
 
@@ -108,8 +110,8 @@ is exactly at market on QB** — so "this room is late on QB" confers no discoun
 by itself. `room_study.md` finding #2 overstates this.
 
 The real mispricing is the scoring system. At 6-point passing TDs, Allen is the
-**18th most valuable player on the board** and available at pick 20 **91% of the
-time**. And the cliff behind him is enormous:
+**18th most valuable player on the board** and ~**100% available** at 20/21.
+The cliff behind him is enormous:
 
 | | VOR |
 |---|---|
@@ -118,8 +120,15 @@ time**. And the cliff behind him is enormous:
 | Lamar Jackson | 26 |
 | Joe Burrow | 21 |
 
-**Take Allen at 20, or take no quarterback until round 6+.** Maye at his ADP of
-49 is a ~34-point mistake against the tight end sitting at 44.
+**Take Allen at 20/21, or take no quarterback until round 6+.** Maye at his ADP
+of 49 is a ~34-point mistake against the tight end sitting at 44 — the gap
+between QB1 and QB2 means there is no middle path.
+
+But Allen is a *conditional* buy, not a lock: the simulation takes him only
+~22% of the time, because Jacobs (72 VOR), London (74) and Hampton (71) are
+genuine rivals at those picks and Allen is 70. **The rule is the threshold, not
+the name** — take him only if the best RB/WR available is worth less than ~70.
+The fallback is sound: a QB arrives at pick 60 in 53% of sims.
 
 **This contradicts the champion pattern, deliberately.** "13 of 16 champions
 took their first QB in round 5+" is drawn mostly from the **4-point era** —
@@ -132,12 +141,14 @@ historical pattern.
 
 | player | VOR | ADP | P(available at 40) |
 |---|---|---|---|
-| Trey McBride | **62** | 44.1 | **85%** |
-| Brock Bowers | 57 | 45.1 | 89% |
-| Travis Etienne Jr. | 43 | 38.6 | 24% |
-| D'Andre Swift | 38 | 43.3 | 44% |
+| Trey McBride | **62** | 44.1 | **70%** |
+| Brock Bowers | 57 | 45.1 | 70% |
+| Travis Etienne Jr. | 43 | 38.6 | 25% |
+| D'Andre Swift | 38 | 43.3 | 41% |
 
-McBride leads that window by ~19 points of VOR and arrives 85% of the time.
+McBride leads that window by ~19 points of VOR, and **one of the two elite
+tight ends is there 94% of the time** — which is the number that matters, since
+either solves the slot.
 Note also: Cannon won 2025 taking McBride at pick 40.
 
 **Do not take both tight ends.** A second TE cannot start (§4.2). Take one, and

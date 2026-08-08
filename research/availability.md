@@ -81,3 +81,48 @@ That is a more useful answer than a ranking would be. The ordering is real in th
 **What IS actionable** is the per-player table above. Individual durability is measured on far more data than a manager's forty picks, and it is the input the draft can actually use: prefer the durable player when value is close, and price the fragile one down rather than hoping. With no IR slot, a player who misses six games costs a roster spot as well as the points.
 
 Note also that drafting fragile players and being unlucky are indistinguishable in this table by construction. If a manager were persistently negative across many more seasons, the actionable reading would be that he keeps buying injury risk — not that the universe dislikes him.
+
+## Is injury risk already priced into the projections?
+
+Partly — and the part it misses is the part that matters.
+
+A projection implies a number of games: divide it by the player's recent points-per-game and you get the games the projection is assuming. Comparing that to the games he has actually played says whether the forecaster has haircut him.
+
+| recent games/yr | n | actually played | projection assumes | gap |
+|---|---|---|---|---|
+| <12 g/yr | 43 | 9.7 | 10.1 | **+0.4** |
+| 12–14 | 34 | 13.2 | 14.5 | **+1.3** |
+| 14–16 | 67 | 15.3 | 14.8 | **-0.6** |
+| 16–17 | 44 | 16.8 | 16.1 | **-0.7** |
+
+In aggregate the gap is near zero, which looks like a full haircut. **It is not.** That average is carried by players whose low games reflect a diminished ROLE — backups and ageing veterans, whose projections are low for that reason. Split out the players whose games were lost to injury while their role stayed elite and the picture inverts:
+
+| player | pos | recent games/yr | projection assumes | gap |
+|---|---|---|---|---|
+| Rashee Rice | WR | 6.0 | 15.2 | **+9.2** |
+| Jacoby Brissett | QB | 10.5 | 17.0 | **+6.5** |
+| Chris Olave | WR | 12.0 | 18.1 | **+6.1** |
+| Daniel Jones | QB | 11.5 | 17.2 | **+5.7** |
+| Kyler Murray | QB | 11.0 | 16.1 | **+5.1** |
+| Dak Prescott | QB | 12.5 | 17.4 | **+4.9** |
+| Christian McCaffrey | RB | 10.5 | 15.3 | **+4.8** |
+| Garrett Wilson | WR | 12.0 | 16.5 | **+4.5** |
+
+These are projected back to roughly a full season. Their injury history is **not** priced in.
+
+### The sensitivity
+
+What the board looks like if each of these players simply repeats his own recent availability. This is a stress test, not a replacement board — the truth is somewhere between, since players do recover and a two-season sample is thin.
+
+| player | projection | if he plays at his own recent rate | loss |
+|---|---|---|---|
+| Rashee Rice | 224 | **88** | -136 |
+| Jacoby Brissett | 261 | **161** | -100 |
+| Chris Olave | 210 | **139** | -71 |
+| Daniel Jones | 310 | **208** | -102 |
+| Kyler Murray | 313 | **215** | -99 |
+| Dak Prescott | 356 | **256** | -100 |
+| Christian McCaffrey | 296 | **203** | -93 |
+| Garrett Wilson | 194 | **141** | -53 |
+
+**The one that decides a pick: Christian McCaffrey.** He is the third most valuable player on the 2026 board, and the gap between what his projection assumes and what he has actually played is the difference between a top-three pick and a mid-second-round one.

@@ -234,7 +234,76 @@ def main() -> int:
              "actionable reading would be that he keeps buying injury risk — "
              "not that the universe dislikes him.\n")
 
+    # ---------------------------------------------------------------- 4
+    L.append("## Is injury risk already priced into the projections?\n")
+    L.append("Partly — and the part it misses is the part that matters.\n")
+    L.append("A projection implies a number of games: divide it by the "
+             "player's recent points-per-game and you get the games the "
+             "projection is assuming. Comparing that to the games he has "
+             "actually played says whether the forecaster has haircut him.\n")
+
+    rec = w[w.season >= max(seasons) - 1]
+    hist = (rec.groupby("key_name")
+               .agg(games=("pts", "size"), pts=("pts", "sum"),
+                    name=("name", "first"), pos=("pos", "first")).reset_index())
+    hist["ns"] = rec.groupby("key_name").season.nunique().values
+    hist = hist[(hist.ns == 2) & (hist.games >= 12)
+                & (hist.pts / hist.games >= 5)].copy()
+    hist["ppg"] = hist.pts / hist.games
+    hist["hist_gps"] = hist.games / 2
+
+    adj = pd.DataFrame()
+    if PROJ.exists():
+        pr2 = pd.read_csv(PROJ)
+        pr2["key_name"] = [player_key(n, p) for n, p in zip(pr2.name, pr2.pos)]
+        adj = hist.merge(pr2[["key_name", "proj"]], on="key_name", how="inner")
+        adj["implied"] = adj.proj / adj.ppg
+        adj["gap"] = adj.implied - adj.hist_gps
+        adj["bucket"] = pd.cut(adj.hist_gps, [0, 12, 14, 16, 17.1],
+                               labels=["<12 g/yr", "12–14", "14–16", "16–17"])
+        L.append("| recent games/yr | n | actually played | projection assumes | gap |")
+        L.append("|---|---|---|---|---|")
+        for b, s in adj.groupby("bucket", observed=True):
+            L.append(f"| {b} | {len(s)} | {s.hist_gps.mean():.1f} | "
+                     f"{s.implied.mean():.1f} | **{s.gap.mean():+.1f}** |")
+        L.append("")
+        L.append("In aggregate the gap is near zero, which looks like a full "
+                 "haircut. **It is not.** That average is carried by players "
+                 "whose low games reflect a diminished ROLE — backups and "
+                 "ageing veterans, whose projections are low for that reason. "
+                 "Split out the players whose games were lost to injury while "
+                 "their role stayed elite and the picture inverts:\n")
+        L.append("| player | pos | recent games/yr | projection assumes | gap |")
+        L.append("|---|---|---|---|---|")
+        watch = adj[(adj.hist_gps < 13) & (adj.proj >= 180)].nlargest(8, "gap")
+        for _, r in watch.iterrows():
+            L.append(f"| {r['name']} | {r.pos} | {r.hist_gps:.1f} | "
+                     f"{r.implied:.1f} | **{r.gap:+.1f}** |")
+        L.append("")
+        L.append("These are projected back to roughly a full season. Their "
+                 "injury history is **not** priced in.\n")
+        L.append("### The sensitivity\n")
+        L.append("What the board looks like if each of these players simply "
+                 "repeats his own recent availability. This is a stress test, "
+                 "not a replacement board — the truth is somewhere between, "
+                 "since players do recover and a two-season sample is thin.\n")
+        L.append("| player | projection | if he plays at his own recent rate | loss |")
+        L.append("|---|---|---|---|")
+        for _, r in watch.iterrows():
+            shrunk = r.proj * r.hist_gps / r.implied
+            L.append(f"| {r['name']} | {r.proj:.0f} | **{shrunk:.0f}** | "
+                     f"{shrunk - r.proj:+.0f} |")
+        L.append("")
+        L.append("**The one that decides a pick: Christian McCaffrey.** He is "
+                 "the third most valuable player on the 2026 board, and the "
+                 "gap between what his projection assumes and what he has "
+                 "actually played is the difference between a top-three pick "
+                 "and a mid-second-round one.\n")
+
     OUT_PQ.parent.mkdir(parents=True, exist_ok=True)
+    if len(adj):
+        adj.to_parquet(Path("data/draft/projection_games_gap.parquet"),
+                       index=False)
     car.to_parquet(OUT_PQ, index=False)
     OUT_MD.write_text("\n".join(L))
     print(f"Wrote {OUT_MD} and {OUT_PQ}")

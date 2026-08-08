@@ -32,6 +32,8 @@ from dotenv import load_dotenv  # noqa: E402
 from src.draft import fantasypros as fp  # noqa: E402
 from src.draft import sources  # noqa: E402
 from src.draft.sources import DRAFT_DATA_DIR, INPUTS_DIR  # noqa: E402
+from src.draft.validate import (ValidationError, check_min_rows,  # noqa: E402
+                                check_seasons_balanced, check_team_codes)
 
 load_dotenv()
 
@@ -118,6 +120,8 @@ def fetch_adp(st: Status) -> None:
     # dispersion. This is the path that actually works as of 2026-08-07.
     try:
         df = sources.fetch_ffc_adp(SEASON)
+        check_min_rows(df, 100, "ADP (FFC)")
+        check_team_codes(df, "team", "ADP (FFC)")
         meta = df.attrs.get("ffc_meta", {})
         _write(df, "adp", st, "ADP (FantasyFootballCalculator, half-PPR)")
         st.ok("ADP provenance",
@@ -141,6 +145,8 @@ def fetch_history(st: Status) -> None:
     try:
         weekly = sources.fetch_nflverse_weekly(HISTORY_YEARS)
         pts = sources.weekly_fantasy_points(weekly, scoring)
+        check_seasons_balanced(pts, HISTORY_YEARS, "weekly points")
+        check_min_rows(pts, 20000, "weekly points")
         _write(pts, "weekly_points", st,
                f"weekly points {HISTORY_YEARS[0]}-{HISTORY_YEARS[-1]} (nflverse)")
     except Exception as e:
@@ -165,6 +171,8 @@ def fetch_extras(st: Status) -> None:
         st.warn("historical byes", str(e))
     try:
         inj = sources.fetch_injuries(HISTORY_YEARS)
+        check_seasons_balanced(inj, HISTORY_YEARS, "injury reports")
+        check_team_codes(inj, "team", "injury reports")
         _write(inj, "injuries", st, "injury reports (nflverse)")
     except Exception as e:
         st.warn("injury reports", f"{e}; games model loses injury type")

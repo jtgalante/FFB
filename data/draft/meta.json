@@ -1,7 +1,7 @@
 {
   "source": "live",
   "season": 2026,
-  "fetched_at": 1786187375.2452412,
+  "fetched_at": 1786216409.271063,
   "history_years": [
     2021,
     2022,
@@ -68,7 +68,7 @@
     {
       "level": "OK",
       "source": "injury reports (nflverse)",
-      "detail": "1750 rows -> data/draft/injuries.parquet"
+      "detail": "8479 rows -> data/draft/injuries.parquet"
     }
   ]
 }

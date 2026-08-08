@@ -1,17 +1,16 @@
 # League configuration for the draft engine.
 #
-# Roster/season structure below was read from this repo's cached Sleeper data
-# (data/sleeper_cache.json, data/draft_cache.json): 10 teams, half-PPR,
-# starters QB/RB/RB/WR/WR/TE/FLEX/FLEX, no K or DST, 15 draft rounds,
-# 14-week regular season, playoffs weeks 15-17.
+# VERIFIED against the live Sleeper league on 2026-08-07:
+#   CFTG, league_id 1388192476728147968, season 2026, status pre_draft.
+#   Raw settings snapshot: data/draft/league_settings.json
+#   Re-check with: python -m scripts.sleeper_settings --league-id 1388192476728147968
 #
-# ASSUMED (verify in Sleeper league settings, then correct here if needed):
-#   - pass_td: 4          (Sleeper default; league could use 6)
-#   - playoff_teams: 6, playoff_byes: 2   (Sleeper default bracket)
+# Confirmed by that read: 6-point passing TDs, half-PPR, -2 interceptions,
+# NO IR slot (0 IR, 0 taxi), 7 bench spots, 4-team playoff field.
 
 teams: 10
 my_draft_slot: 1          # James holds pick 1.1 in 2026
-rounds: 15
+rounds: 15                # 8 starters + 7 bench; no IR/taxi slots to draft into
 
 starters:
   QB: 1
@@ -19,8 +18,13 @@ starters:
   WR: 2
   TE: 1
   FLEX: 2                 # RB/WR/TE eligible
+                          # no K, no DST
 
 flex_eligible: [RB, WR, TE]
+
+bench_slots: 7
+ir_slots: 0               # CONFIRMED: no IR spot. An injured player occupies a
+                          # roster spot all season, so availability is costly.
 
 regular_season_weeks: 14
 
@@ -35,6 +39,8 @@ top_n_bonus: 5
 # TWO-WEEK aggregate final (combined score decides the title). The #1 seed
 # chooses which of the other three qualifiers it plays in the semifinal
 # (rule passed February 2023).
+# Sleeper cannot express either the two-week final or the seed's opponent
+# pick, so these two lines stay hand-maintained.
 playoff_weeks: [15, 16, 17]
 playoff_teams: 4
 playoff_byes: 0
@@ -47,21 +53,28 @@ top_seed_picks_opponent: true
 opponent_weekly_mean: 100.7
 opponent_weekly_sd: 20.8
 
+# All values below read from Sleeper 2026-08-07. Kicker and DST scoring
+# values exist in Sleeper's raw settings but are dead — there are no K or DST
+# roster slots — so they are deliberately not mirrored here.
 scoring:
   rec: 0.5                # half-PPR (passed 6-1 in the 2016 rules vote)
   pass_yd: 0.04
   # 6, not 4: the February 2023 proposal "Go back to four point passing TDs"
-  # FAILED (1 vote for, 8 against). UNCONFIRMED against current Sleeper settings.
-  pass_td: 6
-  pass_int: -1
+  # FAILED (1 vote for, 8 against). NOW CONFIRMED live: Sleeper pass_td = 6.
+  pass_td: 6.0
+  pass_int: -2.0          # was assumed -1; Sleeper says -2
   rush_yd: 0.1
-  rush_td: 6
+  rush_td: 6.0
   rec_yd: 0.1
-  rec_td: 6
-  fum_lost: -2
-  two_pt: 2
+  rec_td: 6.0
+  fum_lost: -2.0
+  two_pt: 2.0             # passing 2pt
+  two_pt_rush: 2.0
+  two_pt_rec: 2.0
 
 # --- Engine parameters (Section 7 of the spec) ---
+# NOTE: research/variance_study.md argues lambda_risk and ceiling_weight
+# should both be ~0 in this league. Not yet changed — pending James's call.
 lambda_risk: 0.5              # utility = mean - lambda * sd (fast objective)
 opponent_adp_noise: 4.0       # sigma in picks for opponent ADP noise
 n_draft_sims: 200             # forward draft sims per candidate

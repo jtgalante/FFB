@@ -32,11 +32,41 @@ _UA = {"User-Agent": "Mozilla/5.0 (X11; Linux x86_64) ffb-draft-engine/1.0"}
 FP_PROJECTION_URL = "https://www.fantasypros.com/nfl/projections/{pos}.php?week=draft&scoring=HALF"
 FP_ADP_URL = "https://www.fantasypros.com/nfl/adp/half-point-ppr-overall.php"
 
+# Fantasy Football Calculator publishes real aggregated draft ADP with no key
+# and no gate. Verified 2026-08-07: 209 players, half-PPR, 15 rounds, pooled
+# from 1808 drafts in the trailing week.
+#
+# CAVEAT: the `teams` parameter is echoed back in the response `meta` but does
+# NOT change the numbers — teams=10 and teams=12 return byte-identical ADP for
+# all 209 players. So this is a POOLED half-PPR ADP, not a true 10-team ADP.
+# Per docs/DATA.md that is an acceptable approximation near the top of the
+# board and diverges later; the engine should not claim otherwise.
+FFC_ADP_URL = ("https://fantasyfootballcalculator.com/api/v1/adp/half-ppr"
+               "?teams={teams}&year={year}&position=all")
+
+# A gated page that returns exactly the free-preview slice must not be allowed
+# to look like a successful scrape. FantasyPros serves 10 rows per position to
+# logged-out clients; a real board needs to cover 150 picks.
+MIN_PROJECTION_ROWS = 120
+MIN_ADP_ROWS = 100
+
+
+class TruncatedSource(RuntimeError):
+    """A source answered, but with a login/paywall-gated slice of the data."""
+
+# nflverse renamed the weekly-stats release in 2025: the assets now live under
+# the `stats_player` tag. The old `player_stats` tag still resolves but is
+# frozen at 2024, so it must be tried LAST or 2025 silently goes missing.
+# Verified 2026-08-07: stats_player has 2021-2025; player_stats stops at 2024.
 NFLVERSE_WEEKLY_PATTERNS = [
+    "https://github.com/nflverse/nflverse-data/releases/download/stats_player/stats_player_week_{year}.parquet",
     "https://github.com/nflverse/nflverse-data/releases/download/player_stats/stats_player_week_{year}.parquet",
     "https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_{year}.parquet",
 ]
-NFLVERSE_SCHEDULE_URL = "https://github.com/nflverse/nflverse-data/releases/download/schedules/schedules.csv"
+# The `schedules/schedules.csv` release asset is gone (404 as of 2026-08-07).
+# nfldata's games.csv is the same data, same column names, and already has the
+# full 2026 regular season — which is what bye weeks are derived from.
+NFLVERSE_SCHEDULE_URL = "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
 FF_PLAYERIDS_URL = "https://github.com/dynastyprocess/data/raw/master/files/db_playerids.csv"
 
 
@@ -73,6 +103,13 @@ def fetch_fantasypros_projections() -> pd.DataFrame:
         frames.append(out)
         time.sleep(1)
     result = pd.concat(frames, ignore_index=True)
+    if len(result) < MIN_PROJECTION_ROWS:
+        by_pos = result.groupby("pos").size().to_dict()
+        raise TruncatedSource(
+            f"FantasyPros served only {len(result)} projection rows {by_pos} — "
+            f"the public pages are gated to a 10-row preview per position for "
+            f"logged-out clients. This is real data but far too short to draft "
+            f"off. Use the CSV export path in docs/DATA.md.")
     result["key_name"] = [player_key(n, p) for n, p in zip(result["name"], result["pos"])]
     return result
 
@@ -96,8 +133,51 @@ def fetch_fantasypros_adp() -> pd.DataFrame:
         "adp": pd.to_numeric(df[adp_col], errors="coerce"),
     }).dropna(subset=["adp"])
     out = out[out["pos"].isin(["QB", "RB", "WR", "TE"])]
+    if len(out) < MIN_ADP_ROWS:
+        raise TruncatedSource(
+            f"FantasyPros served only {len(out)} ADP rows — the public page is "
+            f"gated. Use fetch_ffc_adp() or the CSV export path.")
     out["key_name"] = [player_key(n, p) for n, p in zip(out["name"], out["pos"])]
     return out
+
+
+def fetch_ffc_adp(season: int, teams: int = 10) -> pd.DataFrame:
+    """Aggregated half-PPR ADP from Fantasy Football Calculator. No key needed.
+
+    Returns name, pos, adp plus the dispersion columns FFC gives for free:
+    adp_sd / adp_high / adp_low. `adp_sd` is a measured replacement for the
+    hand-tuned `opponent_adp_noise` in config/league.yaml — it is how much the
+    market actually disagrees about each player, per player, rather than one
+    global sigma.
+
+    See FFC_ADP_URL: the `teams` argument does not actually vary the response.
+    """
+    data = _get(FFC_ADP_URL.format(teams=teams, year=season)).json()
+    meta = data.get("meta") or {}
+    rows = []
+    for p in data.get("players") or []:
+        pos = (p.get("position") or "").upper()
+        if pos not in ("QB", "RB", "WR", "TE"):
+            continue
+        rows.append({
+            "name": p.get("name"),
+            "pos": pos,
+            "team": p.get("team"),
+            "adp": p.get("adp"),
+            "adp_sd": p.get("stdev"),
+            "adp_high": p.get("high"),
+            "adp_low": p.get("low"),
+            "times_drafted": p.get("times_drafted"),
+            "bye": p.get("bye"),
+        })
+    df = pd.DataFrame(rows).dropna(subset=["name", "adp"])
+    if len(df) < MIN_ADP_ROWS:
+        raise TruncatedSource(
+            f"FFC returned only {len(df)} skill-position rows for {season} "
+            f"(meta={meta}) — too few to price a 150-pick draft.")
+    df["key_name"] = [player_key(n, p) for n, p in zip(df["name"], df["pos"])]
+    df.attrs["ffc_meta"] = meta
+    return df
 
 
 def fetch_sleeper_players() -> pd.DataFrame:
@@ -158,6 +238,10 @@ def weekly_fantasy_points(weekly: pd.DataFrame, scoring: dict[str, float]) -> pd
     league's scoring settings. Returns key_name, season, week, pos, team, pts.
     """
     df = weekly.copy()
+    # Regular season only. Playoff weeks would bias the per-player weekly
+    # variance estimate: only players on good teams appear in them.
+    if "season_type" in df.columns:
+        df = df[df["season_type"] == "REG"]
     pos_col = "position" if "position" in df.columns else "position_group"
     df = df[df[pos_col].isin(["QB", "RB", "WR", "TE"])]
 

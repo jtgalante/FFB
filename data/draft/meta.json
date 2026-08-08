@@ -1,7 +1,7 @@
 {
   "source": "live",
   "season": 2026,
-  "fetched_at": 1786148698.0474494,
+  "fetched_at": 1786152557.863919,
   "history_years": [
     2021,
     2022,
@@ -12,38 +12,53 @@
   "status": [
     {
       "level": "WARN",
-      "source": "FantasyPros API",
-      "detail": "no FANTASYPROS_API_KEY set; using scrape"
+      "source": "projections (FantasyPros API)",
+      "detail": "FantasyPros returned a truncated payload for /2026/projections: 10 of 599 players (tier='free', limit=10, public_api_limited=True). This key does not have bulk API access, and an explicit `limit` param does not lift the cap. Use the CSV export path in docs/DATA.md instead.; trying scrape"
+    },
+    {
+      "level": "WARN",
+      "source": "ECR (FantasyPros API)",
+      "detail": "FantasyPros returned a truncated payload for /2026/consensus-rankings: 10 of 852 players (tier='free', limit=10, public_api_limited=True). This key does not have bulk API access, and an explicit `limit` param does not lift the cap. Use the CSV export path in docs/DATA.md instead."
     },
     {
       "level": "FAIL",
       "source": "projections",
-      "detail": "HTTPSConnectionPool(host='www.fantasypros.com', port=443): Max retries exceeded with url: /nfl/projections/qb.php?week=draft&scoring=HALF (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))\n         -> put projections.csv in data/inputs/ instead"
+      "detail": "FantasyPros served only 40 projection rows {'QB': 10, 'RB': 10, 'TE': 10, 'WR': 10} \u2014 the public pages are gated to a 10-row preview per position for logged-out clients. This is real data but far too short to draft off. Use the CSV export path in docs/DATA.md.\n         -> put projections.csv in data/inputs/ instead"
     },
     {
       "level": "WARN",
       "source": "ADP (Sleeper)",
-      "detail": "HTTPSConnectionPool(host='api.sleeper.app', port=443): Max retries exceeded with url: /v1/players/nfl/adp/half_ppr/2026 (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
-    },
-    {
-      "level": "FAIL",
-      "source": "ADP",
-      "detail": "HTTPSConnectionPool(host='www.fantasypros.com', port=443): Max retries exceeded with url: /nfl/adp/half-point-ppr-overall.php (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))\n         -> put adp.csv in data/inputs/ instead"
-    },
-    {
-      "level": "FAIL",
-      "source": "weekly points (nflverse)",
-      "detail": "Could not fetch nflverse weekly stats for 2025: 404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_2025.parquet"
+      "detail": "Sleeper ADP unavailable (404 https://api.sleeper.app/v1/players/nfl/adp/half_ppr/2026)"
     },
     {
       "level": "WARN",
+      "source": "ADP (FantasyPros API)",
+      "detail": "Skipping /2026/adp: this key already returned a free-tier-capped payload this run, so the API cannot serve bulk data. Not spending budget to confirm it again."
+    },
+    {
+      "level": "OK",
+      "source": "ADP (FantasyFootballCalculator, half-PPR)",
+      "detail": "177 rows -> data/draft/adp.parquet"
+    },
+    {
+      "level": "OK",
+      "source": "ADP provenance",
+      "detail": "pooled from 1808 drafts 2026-08-02..2026-08-07; NOT team-count specific (see FFC_ADP_URL note)"
+    },
+    {
+      "level": "OK",
+      "source": "weekly points 2021-2025 (nflverse)",
+      "detail": "29340 rows -> data/draft/weekly_points.parquet"
+    },
+    {
+      "level": "OK",
       "source": "player index (Sleeper)",
-      "detail": "HTTPSConnectionPool(host='api.sleeper.app', port=443): Max retries exceeded with url: /v1/players/nfl (Caused by ProxyError('Unable to connect to proxy', OSError('Tunnel connection failed: 403 Forbidden')))"
+      "detail": "3042 rows -> data/draft/players.parquet"
     },
     {
-      "level": "WARN",
-      "source": "bye weeks",
-      "detail": "404 Client Error: Not Found for url: https://github.com/nflverse/nflverse-data/releases/download/schedules/schedules.csv; season sim will randomize byes"
+      "level": "OK",
+      "source": "bye weeks (nflverse schedule)",
+      "detail": "32 rows -> data/draft/byes.parquet"
     }
   ]
 }

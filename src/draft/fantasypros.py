@@ -54,6 +54,20 @@ class BudgetExceeded(FantasyProsError):
     pass
 
 
+class PublicApiLimited(FantasyProsError):
+    """The API answered, but truncated the payload to the free-tier cap.
+
+    Verified 2026-08-07: this key reports `tier: free`, `public_api_limited:
+    true`, `limit: 10` — it returns 10 players out of a `count` of 852, and
+    passing an explicit `limit` param does NOT lift it. A premium
+    fantasypros.com *website* subscription is a separate product from premium
+    *API* access, so the CSV export path is the one to use (docs/DATA.md).
+
+    This must be an error, not a warning: a 10-row "success" would otherwise
+    overwrite projections/ADP with a board that stops at the 10th player.
+    """
+
+
 def api_key() -> str | None:
     return os.getenv("FANTASYPROS_API_KEY") or None
 
@@ -86,6 +100,37 @@ def _record_call() -> None:
     LEDGER.write_text(json.dumps(led, indent=2))
 
 
+# Set once a truncated payload proves the key lacks bulk access. Every later
+# call in the same process then fails for free rather than spending budget to
+# rediscover the same cap on each endpoint.
+_TIER_CAPPED = False
+
+
+def _check_not_truncated(path: str, data: dict) -> None:
+    """Reject a free-tier-capped payload instead of letting it look like data.
+
+    The API is happy to return HTTP 200 with 10 of 852 players. Silently
+    accepting that would write a 10-player projections/ADP file and the whole
+    board would be built on it.
+    """
+    if not isinstance(data, dict):
+        return
+    served = len(data.get("players") or data.get("rankings") or data.get("adp") or [])
+    total = data.get("count")
+    limited = bool(data.get("public_api_limited"))
+    if not limited and not (isinstance(total, int) and served and served < total):
+        return
+    global _TIER_CAPPED
+    _TIER_CAPPED = True
+    raise PublicApiLimited(
+        f"FantasyPros returned a truncated payload for {path}: "
+        f"{served} of {total} players "
+        f"(tier={data.get('tier')!r}, limit={data.get('limit')!r}, "
+        f"public_api_limited={limited}). This key does not have bulk API "
+        f"access, and an explicit `limit` param does not lift the cap. "
+        f"Use the CSV export path in docs/DATA.md instead.")
+
+
 def _cache_path(path: str, params: dict) -> Path:
     sig = json.dumps({"path": path, "params": params}, sort_keys=True)
     digest = hashlib.sha1(sig.encode()).hexdigest()[:16]
@@ -107,9 +152,16 @@ def _api_get(path: str, params: dict[str, Any], key: str,
             blob = json.loads(cache.read_text())
             age_h = (time.time() - blob.get("fetched_at", 0)) / 3600
             if age_h <= max_age_hours:
+                _check_not_truncated(path, blob["data"])
                 return blob["data"]
         except (json.JSONDecodeError, KeyError):
             pass
+
+    if _TIER_CAPPED:
+        raise PublicApiLimited(
+            f"Skipping {path}: this key already returned a free-tier-capped "
+            f"payload this run, so the API cannot serve bulk data. Not "
+            f"spending budget to confirm it again.")
 
     if dry_run:
         raise BudgetExceeded(f"[dry-run] would call {path} {params}")
@@ -129,10 +181,15 @@ def _api_get(path: str, params: dict[str, Any], key: str,
             f"({calls_remaining()} calls left today)")
 
     data = resp.json()
+    # Cache BEFORE validating: a truncated response is still worth keeping on
+    # disk (it is the evidence of the tier cap) and caching it means a re-run
+    # re-raises for free instead of spending another call to learn the same
+    # thing.
     cache.parent.mkdir(parents=True, exist_ok=True)
     cache.write_text(json.dumps(
         {"fetched_at": time.time(), "url": resp.url.split("?")[0],
          "params": params, "data": data}, indent=2))
+    _check_not_truncated(path, data)
     return data
 
 
@@ -216,6 +273,10 @@ def fetch_projections(season: int, key: str, **kw) -> pd.DataFrame:
                         {"position": "ALL", "week": "draft",
                          "scoring": SCORING}, key, **kw)
         rows = _projection_rows(data, None)
+    except PublicApiLimited:
+        # A tier cap applies to every position equally — splitting the request
+        # four ways would spend four more calls to fail four more times.
+        raise
     except FantasyProsError:
         rows = []
 

@@ -114,6 +114,20 @@ def fetch_adp(st: Status) -> None:
         except Exception as e:
             st.warn("ADP (FantasyPros API)", str(e))
 
+    # Fantasy Football Calculator: public, no key, and carries per-player ADP
+    # dispersion. This is the path that actually works as of 2026-08-07.
+    try:
+        df = sources.fetch_ffc_adp(SEASON)
+        meta = df.attrs.get("ffc_meta", {})
+        _write(df, "adp", st, "ADP (FantasyFootballCalculator, half-PPR)")
+        st.ok("ADP provenance",
+              f"pooled from {meta.get('total_drafts')} drafts "
+              f"{meta.get('start_date')}..{meta.get('end_date')}; "
+              f"NOT team-count specific (see FFC_ADP_URL note)")
+        return
+    except Exception as e:
+        st.warn("ADP (FFC)", str(e))
+
     try:
         df = sources.fetch_fantasypros_adp()
         _write(df, "adp", st, "ADP (FantasyPros scrape)")

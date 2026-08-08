@@ -52,8 +52,22 @@ python -m src.draft.cli bootstrap           # offline fixture from committed cac
 
 `FANTASYPROS_API_KEY` goes in `.env` (gitignored). **The account allows 50 API
 calls/day.** The client caches every response to `data/draft/fp_cache/` and
-commits it, enforces a daily ledger, and supports `dry_run=True`. A full refresh
-costs ≤6 calls. Prefer the CSV export path (`data/inputs/`) for bulk data.
+commits it, enforces a daily ledger, and supports `dry_run=True`.
+
+**The FantasyPros API cannot serve bulk data on this key** (tested 2026-08-07,
+3 calls): it answers 200 but returns `tier: free`, `public_api_limited: true`,
+`limit: 10` — 10 players out of a `count` of 852, and an explicit `limit` param
+does not lift it. The logged-out **web pages are gated identically** (10 `<tr>`
+rows), so the scrape fallback is dead too. Premium *website* access and premium
+*API* access are separate products. Both paths now raise rather than write a
+10-row board. See `docs/DATA.md`. **Projections and ECR must come from the CSV
+export into `data/inputs/`** — that is the only ungated path.
+
+Working sources as of 2026-08-07: ADP from FantasyFootballCalculator (public,
+no key, includes per-player ADP stdev), weekly history from the nflverse
+`stats_player` release (the old `player_stats` tag is frozen at 2024), byes from
+`nfldata/games.csv` (the `schedules` release asset 404s), player index from
+Sleeper. Sleeper's `/players/nfl/adp/...` endpoint 404s — it does not exist.
 
 **If you are running in a cloud container**, `api.sleeper.app`, `fantasypros.com`
 and the nflverse GitHub release assets are blocked by the egress policy — only
@@ -83,6 +97,21 @@ CLI. **The original spec (`Fantasy Draft Portfolio Engine — Cowork Handoff v1`
 needs rewriting** against finding #1 before those get built — James wants to be
 engaged on that, not handed a finished design.
 
+**Settled 2026-08-07** against the live 2026 league (CFTG, league_id
+`1388192476728147968`, status pre_draft) — `config/league.yaml` now matches
+Sleeper exactly, snapshot in `data/draft/league_settings.json`:
+
+- **6-point passing TDs CONFIRMED** (`pass_td: 6`)
+- **No IR spot** (0 IR, 0 taxi) — an injury costs a real roster spot all season,
+  which raises the value of availability further still
+- Interceptions are **-2**, not the assumed -1; 2-pt conversions are 2 across
+  passing/rushing/receiving
+- 10 teams, 8 starters + 7 bench = 15 rounds, 14-week regular season, 4 playoff
+  teams — all as previously assumed
+
 Open questions for James: confirm the 2018/2020/2024/2025 champions in
-`config/history.yaml`; confirm minor scoring values and whether an IR spot
-exists (`scripts/sleeper_settings.py` answers both).
+`config/history.yaml`. **Blocked on James: 2026 projections + ECR.** Log in to
+FantasyPros and use the "Download CSV" button, save to `data/inputs/`
+(`projections.csv`, `adp.csv` optional) — see `docs/DATA.md`. Nothing else is
+missing; ADP, weekly history, byes and the player index are all fetched and
+committed.

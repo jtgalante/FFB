@@ -26,6 +26,28 @@ _ALIASES = {
 }
 
 
+# Team codes disagree across sources, and a mismatch silently drops whole
+# teams on a join rather than erroring. Verified 2026-08-07: FantasyPros ships
+# JAC/LAR while nflverse ships JAX/LA, which cost every Jaguar and Ram their
+# bye week. Canonical form is the fantasy-standard one (LAR, JAX).
+_TEAM_ALIASES = {
+    "LA": "LAR", "STL": "LAR", "JAC": "JAX", "SD": "LAC", "OAK": "LV",
+    "WSH": "WAS", "WFT": "WAS", "ARZ": "ARI", "BLT": "BAL", "CLV": "CLE",
+    "HST": "HOU", "SL": "LAR", "KCC": "KC", "GNB": "GB", "SFO": "SF",
+    "TAM": "TB", "NWE": "NE", "NOR": "NO",
+}
+
+
+def normalize_team(team: str | None) -> str | None:
+    """Map a source's team code onto the canonical one (LAR, JAX, ...)."""
+    if team is None:
+        return None
+    t = str(team).strip().upper()
+    if not t or t in ("NAN", "NONE", "FA"):
+        return None
+    return _TEAM_ALIASES.get(t, t)
+
+
 def normalize_name(name: str) -> str:
     """Normalize a player name for cross-source matching.
 

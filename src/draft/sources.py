@@ -22,7 +22,7 @@ from pathlib import Path
 import pandas as pd
 import requests
 
-from .ids import player_key
+from .ids import normalize_team, player_key
 
 DRAFT_DATA_DIR = Path("data/draft")
 INPUTS_DIR = Path("data/inputs")
@@ -162,7 +162,7 @@ def fetch_ffc_adp(season: int, teams: int = 10) -> pd.DataFrame:
         rows.append({
             "name": p.get("name"),
             "pos": pos,
-            "team": p.get("team"),
+            "team": normalize_team(p.get("team")),
             "adp": p.get("adp"),
             "adp_sd": p.get("stdev"),
             "adp_high": p.get("high"),
@@ -190,7 +190,7 @@ def fetch_sleeper_players() -> pd.DataFrame:
             continue
         name = f"{p.get('first_name', '')} {p.get('last_name', '')}".strip()
         rows.append({"sleeper_id": pid, "name": name, "pos": pos,
-                     "team": p.get("team"), "age": p.get("age"),
+                     "team": normalize_team(p.get("team")), "age": p.get("age"),
                      "years_exp": p.get("years_exp")})
     df = pd.DataFrame(rows)
     df["key_name"] = [player_key(n, p) for n, p in zip(df["name"], df["pos"])]
@@ -229,7 +229,8 @@ def fetch_byes(season: int) -> pd.DataFrame:
     for team in teams:
         played = set(df[(df["home_team"] == team) | (df["away_team"] == team)]["week"])
         bye = [w for w in weeks if w not in played]
-        rows.append({"team": team, "bye": bye[0] if bye else None})
+        rows.append({"team": normalize_team(team),
+                     "bye": bye[0] if bye else None})
     return pd.DataFrame(rows)
 
 
@@ -267,7 +268,8 @@ def weekly_fantasy_points(weekly: pd.DataFrame, scoring: dict[str, float]) -> pd
     out = pd.DataFrame({
         "name": df[name_col],
         "pos": df[pos_col],
-        "team": df["recent_team"] if "recent_team" in df.columns else df.get("team"),
+        "team": (df["recent_team"] if "recent_team" in df.columns
+                 else df.get("team")).map(normalize_team),
         "season": df["season"],
         "week": df["week"],
         "pts": pts.round(2),

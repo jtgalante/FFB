@@ -55,8 +55,14 @@ class DataStore:
                 "(offline fixture from the committed league caches).")
         meta = json.loads(meta_path.read_text())
 
-        proj = pd.read_parquet(data_dir / "projections.parquet")
-        adp = pd.read_parquet(data_dir / "adp.parquet")
+        # Projections may legitimately have no fetched parquet: FantasyPros
+        # gates both its API and its public pages, so data/inputs/projections.csv
+        # (built by scripts.ingest_projections) is the normal source rather
+        # than a fallback. Same for ADP if a CSV override is supplied.
+        proj = _read_optional(data_dir / "projections.parquet",
+                              INPUTS_DIR / "projections.csv", "projections")
+        adp = _read_optional(data_dir / "adp.parquet",
+                             INPUTS_DIR / "adp.csv", "ADP")
         weekly = pd.read_parquet(data_dir / "weekly_points.parquet")
         byes_path = data_dir / "byes.parquet"
         byes = pd.read_parquet(byes_path) if byes_path.exists() else None
@@ -89,6 +95,26 @@ class DataStore:
         df = df.sort_values("adp").reset_index(drop=True)
         df["adp_rank"] = np.arange(1, len(df) + 1)
         return df
+
+
+def _read_optional(parquet: Path, override_csv: Path, label: str) -> pd.DataFrame:
+    """Read a fetched parquet, tolerating its absence if an override exists.
+
+    Returns an empty frame when the parquet is missing but the CSV override is
+    present — `_apply_input_overrides` replaces it wholesale a moment later.
+    Only when BOTH are missing is this an error worth raising.
+    """
+    if parquet.exists():
+        return pd.read_parquet(parquet)
+    if override_csv.exists():
+        return pd.DataFrame()
+    raise FileNotFoundError(
+        f"No {label}: neither {parquet} nor {override_csv} exists.\n"
+        f"For projections: export the FantasyPros CSVs into "
+        f"{INPUTS_DIR}/Projections/ and run "
+        f"`python -m scripts.ingest_projections` (FantasyPros gates both its "
+        f"API and its public pages, so there is no automatic path).\n"
+        f"For ADP: run `python -m scripts.fetch_data`.")
 
 
 def _apply_input_overrides(proj: pd.DataFrame, adp: pd.DataFrame):

@@ -46,9 +46,20 @@ The engine reads only local files (`data/draft/`), so draft day needs no network
 
 ```bash
 python -m scripts.sleeper_settings          # live league settings -> config diff
-python -m scripts.fetch_data                # projections, ADP, weeklies, byes
+python -m scripts.fetch_data                # ADP, weeklies, byes, player index
+python -m scripts.ingest_projections        # FantasyPros CSV exports -> projections
 python -m src.draft.cli bootstrap           # offline fixture from committed caches
 ```
+
+**Projections come from CSV export, not the network.** Save the FantasyPros
+per-position exports (QB/RB/WR/TE, plus FLX as a cross-check) into
+`data/inputs/Projections/` and run `scripts.ingest_projections`. It recomputes
+fantasy points from the component stats under `config/league.yaml` — necessary
+because **FantasyPros exports QB projections at 4-point passing TDs and −1
+INT**, so its FPTS column understates this league's QBs by up to 59 points and
+reorders the position (Stafford QB15 → QB8). It also handles the per-position
+column-order reversal (RB is rush-then-rec, WR is rec-then-rush, under
+duplicate header names) and cross-checks the parse against the FLX export.
 
 `FANTASYPROS_API_KEY` goes in `.env` (gitignored). **The account allows 50 API
 calls/day.** The client caches every response to `data/draft/fp_cache/` and

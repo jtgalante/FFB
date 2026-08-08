@@ -96,7 +96,8 @@ environment's network policy.
   different competition; never mix its data in.
 - Regenerate research with `python -m scripts.room_study`,
   `python -m scripts.variance_study`,
-  `python -m scripts.rebuild_standings --validate`.
+  `python -m scripts.rebuild_standings --validate`,
+  `python -m scripts.harpers_index [--sharpness 1|2|3]`.
 
 ## Status
 

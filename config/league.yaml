@@ -73,12 +73,40 @@ scoring:
   two_pt_rec: 2.0
 
 # --- Engine parameters (Section 7 of the spec) ---
-# NOTE: research/variance_study.md argues lambda_risk and ceiling_weight
-# should both be ~0 in this league. Not yet changed — pending James's call.
-lambda_risk: 0.5              # utility = mean - lambda * sd (fast objective)
-opponent_adp_noise: 4.0       # sigma in picks for opponent ADP noise
+
+# Both variance knobs are ZERO, on the evidence in research/variance_study.md.
+#
+# lambda_risk is the penalty on weekly inconsistency (utility = mean - lambda *
+# sd); ceiling_weight is the opposite tilt, favouring high-variance players in
+# the late rounds. Both bet that volatility is worth something here. It is not:
+# one point per week of expected scoring buys +1.72pp of championship
+# probability, while the ENTIRE realistic range of weekly standard deviation
+# (sigma 12 -> 32, wider than any roster this league has fielded) buys +0.59pp.
+#
+# The measured sign on sigma is very slightly positive, which would argue for a
+# small NEGATIVE lambda. It is not worth acting on — +0.59pp carries a +/-0.17pp
+# error bar, so tuning to it is fitting noise. Zero is the honest value: spend
+# the modelling effort on projections and price instead.
+lambda_risk: 0.0
+ceiling_weight: 0.0
+#
+# CAUTION for whoever revisits this: variance_study.md measures WEEKLY variance
+# at a fixed season mean. It says nothing about season-long outcome uncertainty
+# — the breakout-or-bust rookie whose true talent is unknown. A late-round
+# upside tilt may still be justified, but by the waiver-wire-option argument
+# (the downside is truncated because you can cut the bust), NOT by the
+# top-heavy-payoff reasoning the study rejects. If that tilt is wanted, add it
+# as a separate parameter with its own justification and its own test. Note
+# also that this league has NO IR SLOT, so the carrying cost of a dud is a real
+# roster spot all season — which weakens that option argument here.
+
+# Per-player ADP dispersion is now measured (data/draft/adp.parquet carries
+# adp_sd from 1808 drafts), and it ranges from 2.0 in rounds 1-2 to 15.7 in
+# round 13+. A single global sigma is therefore wrong at both ends; this value
+# survives only as a fallback for players the market does not price.
+opponent_adp_noise: 4.0
+
 n_draft_sims: 200             # forward draft sims per candidate
 n_season_sims: 1000           # season Monte Carlo sims for full evaluation
 n_season_sims_fast: 60        # season sims used inside the draft-sim loop
-replacement_baseline_method: worst_starter   # worst_starter | bench_top
-ceiling_weight: 0.25          # late-round tilt toward high-variance players
+replacement_baseline_method: derived_flex   # see data.replacement_levels()

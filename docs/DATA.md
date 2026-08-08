@@ -88,3 +88,26 @@ dataset from this repo's committed league caches (2024–25 weekly scoring and
 the 2025 draft board). It is real data but *stale*: 2025 prices and 2025
 production, useful only for building and testing the engine. Anything produced
 from it is watermarked `source: fixture`. Never draft off it.
+
+## Reading live league settings from Sleeper
+
+`api.sleeper.app` is blocked from the cloud sandbox, so run this on your laptop:
+
+```bash
+python -m scripts.sleeper_settings           # show settings and diff vs config
+python -m scripts.sleeper_settings --write   # apply them to config/league.yaml
+```
+
+It finds the current season's league from your Sleeper username (Sleeper mints a
+new league id every season, so `SLEEPER_LEAGUE_ID` in `.env` goes stale each
+year) and prints every non-zero scoring value, the roster slots, IR/taxi slots,
+and the playoff field. That settles the items the email archive could not:
+exact passing-yard/interception/fumble/2-pt values, whether an IR spot exists,
+and the playoff team count.
+
+If you're in more than one league that season it stops and lists them — pick the
+**redraft** league with `--league-id`, not Gaetz Dynasty.
+
+Two things Sleeper cannot express, so they stay hand-maintained in
+`config/league.yaml`: the **two-week aggregate final** and the **#1 seed picking
+its semifinal opponent**.

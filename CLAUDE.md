@@ -21,6 +21,8 @@ The draft is imminent — August 2026.
 | `config/history.yaml` | Verified champions per season (the platform data is wrong) |
 | `data/clickydraft_cache.json` | Golden-source draft history: 2020–2022, correct slot order, team→manager map |
 | `docs/DATA.md` | How to get projections/ADP onto the engine |
+| `docs/DATA_DEFICIENCIES.md` | **Every known gap in the data.** Read before trusting a number |
+| `docs/ARCHITECTURE.md` | One diagram of the whole shape |
 
 ## The league (verified — see research/league_rules.md)
 
@@ -155,7 +157,34 @@ environment's network policy.
   `python -m scripts.build_board`,
   `python -m scripts.availability_study`.
 
-## Status
+## Status — 2026-08-08
+
+**Analysis closed. Data layer rebuilt and tested. Draft tooling not started.**
+
+Built today: 228 tests (from zero), a build-time validation gate
+(`src/draft/validate.py`) where every check maps to a bug that actually
+shipped, a canonical warehouse (`data/warehouse/`, five joined tables) that all
+analyses now read, a self-contained SQLite hand-off (`data/export/ffb.sqlite`
+plus a dictionary), and ClickyDraft verification that repaired the draft slot
+order in 6 seasons.
+
+**What is NOT done, in priority order:**
+
+1. **The live draft module** — the point of the whole exercise. James runs the
+   draft from inside Claude, so this is a small callable surface
+   (`record_pick` / `available` / `recommend`) reading `data/draft/board.parquet`
+   and re-solving in seconds. Not an app, not a CLI. Needs a brainstorm first:
+   "run the draft from Claude" could mean several different things and the
+   interface choice is most of the design.
+2. **Dashboard UI rewiring** — fully specced in
+   `docs/superpowers/plans/2026-08-08-dashboard-rewiring.md`. The data layer is
+   already correct (`src/league_data.py`); five UI call sites still read ESPN's
+   `finish` field and several labels describe the wrong quantity.
+3. **Six unverified draft boards** — 2010, 2011, 2012, 2013, 2016, 2018. All
+   outside the opponent model's window, so they affect the long history but not
+   the 2026 plan. See `docs/DATA_DEFICIENCIES.md` §1.
+4. **The 2009 board** — recovered and held out of the archive pending four
+   manager attributions. `data/inputs/clickydraft/2009_slots.json`.
 
 **The analysis phase is closed.** Read `research/draft_analysis_2026.md` first:
 it is the synthesis and the pick-by-pick plan, it supersedes the per-finding
@@ -166,10 +195,9 @@ Done: data pipeline (live 2026 projections/ADP/weeklies/byes committed),
 league/rules research, opponent model parameters, variance study, alpha model +
 static board (`scripts/build_board.py`).
 
-Not started: draft simulator/optimizer, live draft CLI. **The original spec
-(`Fantasy Draft Portfolio Engine — Cowork Handoff v1`) needs rewriting** against
-finding #1 before those get built — James wants to be engaged on that, not
-handed a finished design.
+**The original spec (`Fantasy Draft Portfolio Engine — Cowork Handoff v1`) is
+superseded** by `research/draft_analysis_2026.md` and finding #1. Do not build
+against the spec's correlated season Monte Carlo; it does not earn its cost.
 
 Engine params are now set from the studies rather than the spec's defaults:
 `lambda_risk: -0.017` (the exchange rate variance_study.md actually implies —

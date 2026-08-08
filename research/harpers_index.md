@@ -14,13 +14,12 @@ Over which it decides the championship: **2**
 Roster spots this league provides for an injured player: **0**  
 Weeks a season lasts: **14**  
 
-Rank of Anthony Lettieri among the league's 10 managers in points scored since 2010: **10th**  
-Championships he has won: **3**  
-Won by Brian Dzuris, who outscores him: **0**  
+Rank of Matt McCauley among the league's 10 managers in points scored since 2010: **3rd**  
+Championships he has won: **4**  
 
 Weeks Matt McCauley has lost while outscoring the league median: **36**  
 Weeks Anthony Lettieri has won while scoring below it: **32**  
-Championships separating them: **0**  
+Championships separating them: **1**  
 
 Highest score any manager has posted in a week: **204.2 (2021)**  
 Lowest: **32.5 (2012)**  
@@ -42,14 +41,14 @@ Points the consensus projects for Josh Allen in 2026: **372.2**
 Points he scores under this league's rules: **415.7**  
 
 Rank of Josh Allen among all players by value in this league: **18**  
-Average pick at which the market takes him: **26**  
+Average pick at which the market takes him: **25**  
 
-Average picks at which the two most valuable tight ends on the board are taken: **44 and 45**  
+Average picks at which the two most valuable tight ends on the board are taken: **45 and 45**  
 Consecutive picks James Galante holds just before them: **40 and 41**  
 
-Seasons of this league the platforms have on record: **16**  
+Seasons of this league the platforms have on record: **18**  
 Seasons for which they name the wrong champion: **3 that can be proved**  
-Champions in the league's corrected records confirmed by a living person: **0**  
+Champions in the league's corrected records confirmed by a living person: **18**  
 
 Rate at which Bryan Cannon re-drafts his own player from the previous season, the lowest of 10: **4%**  
 Times he has drafted Mark Andrews: **3**  

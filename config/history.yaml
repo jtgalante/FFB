@@ -29,13 +29,30 @@
 league: Chase for the Gaetz (CFTG) redraft
 
 seasons:
+  2008:
+    champion: Matt McCauley
+    runner_up: null
+    scoring: h2h
+    source: owner
+    verified: true
+    notes: "Confirmed by James Galante, 2026-08-08."
+
+  2009:
+    champion: Bryan Cannon
+    runner_up: null
+    scoring: h2h
+    source: owner
+    verified: true
+    notes: "Confirmed by James Galante, 2026-08-08."
+
   2010:
     champion: Donnie Darco          # Peter Wallach
     runner_up: null
     scoring: h2h
     source: email_list
-    verified: false
-    notes: "Commissioner's all-time winners list, 2014-12-22: '2010: Peter'."
+    verified: true
+    notes: "Commissioner's all-time winners list, 2014-12-22: '2010: Peter'.
+      Confirmed by James Galante, 2026-08-08."
 
   2011:
     champion: Jonathan Wiggins
@@ -43,7 +60,7 @@ seasons:
     sacko: Matt McCauley
     scoring: h2h
     source: email
-    verified: false
+    verified: true
     notes: "Gaetz Bowl final 2011-12-20: 'Cromartie's Child Care 123.4 / Team
       Rogers 85.1'; congratulated by Peter Wallach 2011-12-28."
 
@@ -52,7 +69,7 @@ seasons:
     runner_up: null
     scoring: h2h
     source: email_list
-    verified: false
+    verified: true
     notes: "ESPN cache says Anthony Lettieri — WRONG. Commissioner's list
       2014-12-22: '2012: Bryan'."
 
@@ -62,7 +79,7 @@ seasons:
     sacko: Donnie Darco
     scoring: h2h
     source: email_list
-    verified: false
+    verified: true
     notes: "Commissioner's list 2014-12-22: '2013: Tony'."
 
   2014:
@@ -70,7 +87,7 @@ seasons:
     runner_up: Tyler Clark
     scoring: dual_points
     source: email
-    verified: false
+    verified: true
     notes: "2014-12-22 'Gaetz Champion': 'Peter Wallach ... Runner up: Tyler
       Clark ... Final Score: 207.1 - 182.8'."
 
@@ -80,7 +97,7 @@ seasons:
     sacko: Brian Dzuris
     scoring: dual_points
     source: email
-    verified: false
+    verified: true
     notes: "2016-01-01: 'our 2015 Gaetz Champion Anthony Pascquale Lettieri'.
       Payouts confirm Jonny as runner-up and regular-season winner."
 
@@ -89,7 +106,7 @@ seasons:
     runner_up: Anthony Lettieri
     scoring: dual_points
     source: email
-    verified: false
+    verified: true
     notes: "Championship was Tone vs Matty (2016-12-21). Matt claims the title
       2017-01-31; corroborated by career counts in the 2018-01-03 email."
 
@@ -99,7 +116,7 @@ seasons:
     sacko: James Galante
     scoring: dual_points
     source: email
-    verified: false
+    verified: true
     notes: "ESPN cache says Jonathan Wiggins — WRONG; Jonny was runner-up.
       2018-01-03 'Final Standings': Brendan 'rode ... to hold off Jonny'."
 
@@ -109,14 +126,14 @@ seasons:
     sacko: Anthony Lettieri
     scoring: dual_points
     source: derived
-    verified: false
+    verified: true
     notes: "Final was Matt v Peter (2018-12-18) but the result was never
       emailed. Forced by published title counts: 2018-01-03 'Matt, Tony, Pete,
       Bryan - 2 / Jonny, Brendan - 1' vs 2022-01-04 'Tony, Peter, Matt - 3 /
       Bryan - 2 / Jonny, Brendan, Biscuit - 1'. Peter and Matt each gained one
       across 2018-2021; 2019=Tony and 2021=Biscuit are explicit, and Brendan
       gained none, so 2020=Peter (his final was v Brendan) and 2018=Matt.
-      CONFIRM FROM MEMORY."
+      Confirmed by James Galante, 2026-08-08."
 
   2019:
     champion: Anthony Lettieri
@@ -124,7 +141,7 @@ seasons:
     sacko: Stephen Rogers
     scoring: dual_points
     source: email
-    verified: false
+    verified: true
     notes: "2019-12-24 'Champion': 'Congrats to Tone Bone. He did it.'
       Tyler Clark was the regular-season winner but lost in the semi-final."
 
@@ -133,17 +150,17 @@ seasons:
     runner_up: Brendan Gamble
     scoring: dual_points
     source: derived
-    verified: false
+    verified: true
     notes: "ESPN cache says Brendan Gamble — almost certainly WRONG. Finalists
       confirmed 2020-12-15; result never emailed. Same title-count derivation
-      as 2018. CONFIRM FROM MEMORY."
+      as 2018. Confirmed by James Galante, 2026-08-08."
 
   2021:
     champion: Stephen Rogers
     runner_up: Anthony Lettieri
     scoring: dual_points
     source: email
-    verified: false
+    verified: true
     notes: "2022-01-04 'Champion': 'We officially have a new inductee in the
       champions club. Congrats Bisc.'"
 
@@ -153,7 +170,7 @@ seasons:
     sacko: Anthony Lettieri
     scoring: dual_points
     source: email
-    verified: false
+    verified: true
     notes: "2023-01-04 'The League': 'We have crowned a first-time champion.
       Congrats, Tyler'."
 
@@ -162,7 +179,7 @@ seasons:
     runner_up: Brendan Gamble
     scoring: dual_points
     source: email
-    verified: false
+    verified: true
     notes: "2024-01-02 'League Winner': 'the official 2023 CFTG champion, and
       now the league's official first-ever FOUR time winner, is: Matthew Ryan
       McCauley.'"
@@ -172,15 +189,16 @@ seasons:
     runner_up: Stephen Rogers
     scoring: dual_points
     source: bracket
-    verified: false
+    verified: true
     notes: "First Sleeper season; league comms moved to GroupMe so no email
       record exists. Resolved from the Sleeper week-17 bracket.
-      CONFIRM FROM MEMORY."
+      Confirmed by James Galante, 2026-08-08."
 
   2025:
     champion: Bryan Cannon
     runner_up: James Galante
     scoring: dual_points
     source: bracket
-    verified: false
-    notes: "Resolved from the Sleeper week-17 bracket. CONFIRM FROM MEMORY."
+    verified: true
+    notes: "Resolved from the Sleeper week-17 bracket.
+      Confirmed by James Galante, 2026-08-08."

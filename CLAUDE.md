@@ -11,6 +11,8 @@ The draft is imminent — August 2026.
 
 | File | What it is |
 |---|---|
+| `research/draft_analysis_2026.md` | **The synthesis + the pick-by-pick plan. Start here.** |
+| `research/board_2026.md` | Generated board: VOR, tiers, P(available) at each pick |
 | `research/room_study.md` | 16 years of opponent draft tendencies + scouting reports |
 | `research/variance_study.md` | **Rejects the original spec's core premise** — read before designing anything |
 | `research/league_rules.md` | Dated rule timeline with quoted evidence |
@@ -97,15 +99,19 @@ environment's network policy.
 - Regenerate research with `python -m scripts.room_study`,
   `python -m scripts.variance_study`,
   `python -m scripts.rebuild_standings --validate`,
-  `python -m scripts.harpers_index [--sharpness 1|2|3]`.
+  `python -m scripts.harpers_index [--sharpness 1|2|3]`,
+  `python -m scripts.build_board`.
 
 ## Status
 
 Done: data pipeline scaffolding, league/rules research, opponent model
 parameters, variance study.
 
-Not started: alpha model + static board, draft simulator/optimizer, live draft
-CLI. **The original spec (`Fantasy Draft Portfolio Engine — Cowork Handoff v1`)
+Done: **analysis phase closed** — see `research/draft_analysis_2026.md` for the
+synthesis and the pick-by-pick plan, and `scripts/build_board.py` for the
+generated board (VOR, tiers, availability sim calibrated to this room).
+
+Not started: draft simulator/optimizer, live draft CLI. **The original spec (`Fantasy Draft Portfolio Engine — Cowork Handoff v1`)
 needs rewriting** against finding #1 before those get built — James wants to be
 engaged on that, not handed a finished design.
 

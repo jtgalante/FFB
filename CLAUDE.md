@@ -36,11 +36,25 @@ The draft is imminent — August 2026.
    +0.59pp (~0.34 pts/week). Optimize **expected points**, set `lambda_risk` and
    `ceiling_weight` to ~0, and prioritize **availability** over weekly variance.
    The spec's correlated season Monte Carlo does not earn its cost.
-2. **The room's QB market is late.** No QB in the first 19 picks in five years;
-   QB1 goes ~pick 25. 13 of 16 champions took their first QB in round 5+.
-3. **Round 1 is 74% RB in this room** while national boards skew WR — so the
-   pick 20/21 wrap should offer WR value. This is the main structural edge.
-4. Per-opponent tendencies are in `research/room_tendencies.json`.
+2. **The room's QB market is late, but that is NOT an edge on its own.** QB1
+   goes ~pick 25 here; national ADP has Josh Allen at 25.7 — the room is
+   exactly at market. The edge is the **scoring system**: at 6-point passing
+   TDs Allen is the 18th most valuable player and 91% available at pick 20,
+   with a 42-point VOR cliff behind him. The "13 of 16 champions waited" figure
+   is mostly from the 4-point era, which ended in 2022. See
+   `draft_analysis_2026.md` §5.2.
+3. **Round 1 is 74% RB in this room.** The original inference — that this
+   leaves *WR* value at 20/21 — is only half right; the WR tier flattens after
+   St. Brown. The bigger beneficiaries of an RB-drained board are the positions
+   nobody bids on: **QB at 20 and TE at 40** (McBride, 85% available, leads
+   that window by ~19 VOR). See §5.1/§5.3.
+4. **From slot 1 the pick gaps alternate 19, 1, 19, 1.** Every pick after the
+   opener is half of a back-to-back pair, so there is no sequencing decision
+   inside a pair — take the best two available. All risk is in the 19-pick
+   gaps, and one pair can solve two scarce positions at once.
+5. Per-opponent tendencies are in `research/room_tendencies.json` — **not yet
+   wired into the opponent model.** Dzuris's early QB and Cannon's early TE are
+   the two that would most move findings #2 and #3.
 
 ## Data
 
@@ -104,16 +118,24 @@ environment's network policy.
 
 ## Status
 
-Done: data pipeline scaffolding, league/rules research, opponent model
-parameters, variance study.
+**The analysis phase is closed.** Read `research/draft_analysis_2026.md` first:
+it is the synthesis and the pick-by-pick plan, it supersedes the per-finding
+notes where they disagree, and its §8 lists what is still not modelled and §9
+records the claims corrected along the way.
 
-Done: **analysis phase closed** — see `research/draft_analysis_2026.md` for the
-synthesis and the pick-by-pick plan, and `scripts/build_board.py` for the
-generated board (VOR, tiers, availability sim calibrated to this room).
+Done: data pipeline (live 2026 projections/ADP/weeklies/byes committed),
+league/rules research, opponent model parameters, variance study, alpha model +
+static board (`scripts/build_board.py`).
 
-Not started: draft simulator/optimizer, live draft CLI. **The original spec (`Fantasy Draft Portfolio Engine — Cowork Handoff v1`)
-needs rewriting** against finding #1 before those get built — James wants to be
-engaged on that, not handed a finished design.
+Not started: draft simulator/optimizer, live draft CLI. **The original spec
+(`Fantasy Draft Portfolio Engine — Cowork Handoff v1`) needs rewriting** against
+finding #1 before those get built — James wants to be engaged on that, not
+handed a finished design.
+
+Engine params in `config/league.yaml` still hold the spec's defaults
+(`lambda_risk: 0.5`, `ceiling_weight: 0.25`). The variance study says both
+should be ~0. **Left unchanged pending James's call**, since it is part of the
+spec rewrite he wants to be involved in.
 
 **Settled 2026-08-07** against the live 2026 league (CFTG, league_id
 `1388192476728147968`, status pre_draft) — `config/league.yaml` now matches
@@ -127,9 +149,17 @@ Sleeper exactly, snapshot in `data/draft/league_settings.json`:
 - 10 teams, 8 starters + 7 bench = 15 rounds, 14-week regular season, 4 playoff
   teams — all as previously assumed
 
-Open questions for James: confirm the 2018/2020/2024/2025 champions in
-`config/history.yaml`. **Blocked on James: 2026 projections + ECR.** Log in to
-FantasyPros and use the "Download CSV" button, save to `data/inputs/`
-(`projections.csv`, `adp.csv` optional) — see `docs/DATA.md`. Nothing else is
-missing; ADP, weekly history, byes and the player index are all fetched and
-committed.
+Open questions for James:
+
+1. Confirm the 2018/2020/2024/2025 champions in `config/history.yaml`. Only
+   2018 and 2020 are load-bearing — they are inferred from published cumulative
+   title counts, not stated anywhere.
+2. `lambda_risk` / `ceiling_weight` → 0? (see Status)
+3. Does the QB arbitrage justify breaking the room's late-QB convention? This
+   is where the analysis most diverges from the historical pattern.
+
+**Not blocked on data.** Projections (521 players, rescored), ADP, weekly
+history, byes and the player index are all fetched and committed. Only ECR is
+missing — the CSV export does not include consensus rank or its dispersion, so
+every projection is a single-source point estimate with no uncertainty around
+it.

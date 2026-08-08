@@ -45,15 +45,35 @@ records a failed statistical approach so nobody retries it.
 Merging it partially would introduce phantom managers into every per-manager
 analysis, so it stays out until someone remembers the four team names.
 
-## 3. Eighteen rows where `win` contradicts its own scores
+## 3. Eighteen rows where `win` contradicts its own scores — SOLVED, fix pending
 
 In `team_weeks`, 9 games across 2015, 2016 and 2018 record a winner who scored
-fewer points. A defect in the ESPN export, written through unchanged rather
-than silently "corrected" — rewriting it would be inventing league history.
-`scripts/build_warehouse.py` prints a warning; `check_win_consistency` in
+fewer points. `scripts/build_warehouse.py` warns; `check_win_consistency` in
 `src/draft/validate.py` finds them.
 
-Head-to-head records for those three seasons are off by a game or two.
+**The scores are right and ESPN's `win` field is wrong.** Two lines of evidence:
+
+1. Margins run to **45 points**, and the median contradictory margin (14.7) is
+   no smaller than a normal game (21.9). These are not close games flipped by a
+   late stat correction, which was the standing assumption.
+2. The commissioner's own spreadsheet settles it. `rebuild_standings --validate`
+   has always reported 2018 as off-by-one for exactly two managers — Donnie
+   Darco reconstructed 17 against an official 18, Anthony Lettieri
+   reconstructed 7 against an official 6. The 2018 regular-season contradiction
+   is week 8, **Lettieri 79.42 vs Darco 80.04, with ESPN marking Lettieri the
+   winner**. Score that game by its points and Darco gains one and Lettieri
+   loses one: both discrepancies vanish exactly.
+
+Most likely a transposition in the ESPN export — the flag written against the
+wrong side of the matchup.
+
+**The fix, not yet applied:** derive `win` from `points > opponent_points` in
+`build_warehouse` rather than trusting the field, keeping the raw flag in a
+separate column so the defect stays visible. That should make 2018 validate
+exactly, taking the validated seasons from 2 of 3 to 3 of 3. Note that
+`scripts/rebuild_standings.py` still carries a comment calling the 2018
+discrepancy "likely an ESPN stat correction applied after the sheet was
+written" — that explanation is wrong and should be replaced when the fix lands.
 
 ## 4. Opponents are reconstructed, not recorded
 

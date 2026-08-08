@@ -77,6 +77,10 @@ The engine reads only local files (`data/draft/`), so draft day needs no network
 python -m scripts.sleeper_settings          # live league settings -> config diff
 python -m scripts.fetch_data                # ADP, weeklies, byes, player index
 python -m scripts.ingest_projections        # FantasyPros CSV exports -> projections
+python -m scripts.build_warehouse           # canonical joined tables -> data/warehouse/
+python -m scripts.export_datasheet          # one SQLite file + dictionary -> data/export/
+python -m scripts.verify_clickydraft        # check draft slots vs the golden boards
+python -m pytest tests/ -q                  # 201 invariants
 ```
 
 **Projections come from CSV export, not the network.** Save the FantasyPros
@@ -115,8 +119,24 @@ environment's network policy.
 
 ## Conventions
 
+- **Analyses read `data/warehouse/`, not the raw caches.** Manager names, draft
+  slots, player keys and weekly opponents are resolved once by
+  `scripts/build_warehouse.py`. Re-deriving those joins per script is what
+  produced the JAC/LAR bye loss, the four silently-deleted injury seasons and
+  the scrambled draft slots.
+- Data-shape bugs here are silent by default, so `src/draft/validate.py` asserts
+  at build time. Every validator maps to a bug that actually shipped. Run
+  `python -m pytest tests/ -q` before trusting any regenerated artifact.
+- **`data/export/ffb.sqlite`** is the hand-off artifact: all six tables plus
+  `DATA_DICTIONARY.md`, self-contained, no dependencies. Give someone that
+  directory and they have the league.
 - Player joins use a normalized `name|position` key (`src/draft/ids.py`), never
   raw names. Unmatched players are reported, not silently dropped.
+- Snake draft arithmetic lives in `src/draft/draftmath.py` — never re-derive it.
+- **`team_weeks` has 18 rows where `win` contradicts the scores** (2015/2016/
+  2018, ESPN export defect). Written through unchanged rather than silently
+  "corrected"; `build_warehouse` warns. Recompute from points if you need true
+  head-to-head records.
 - Manager names are canonicalized via `MANAGER_ALIASES` in `src/config.py`.
   Note "Donnie Darco" in the ESPN export is **Peter Wallach**.
 - Never trust the platform caches for champions — use `config/history.yaml`.

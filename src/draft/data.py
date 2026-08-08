@@ -28,9 +28,16 @@ from .sources import DRAFT_DATA_DIR, INPUTS_DIR
 SLEEPER_CACHE = Path("data/sleeper_cache.json")
 DRAFT_CACHE = Path("data/draft_cache.json")
 
-# Expected games played per season by position (historical league-wide rates,
-# used for fixture projections and as the availability prior in the risk model).
-EXPECTED_GAMES = {"QB": 15.5, "RB": 14.0, "WR": 14.8, "TE": 14.6}
+# Expected games played per season by position, out of 17. MEASURED, 2021-25,
+# over players actually drafted in rounds 1-8 of this league — the population
+# that was expected to start. Regenerate with `python -m scripts.availability`.
+#
+# The previous values here were a guess and were optimistic at every position.
+# Note the population matters enormously: computed over all fantasy-relevant
+# player-seasons instead, QB comes out at 10.3 games, which is not an injury
+# rate at all — it is backup quarterbacks clearing a per-game threshold across
+# a handful of starts.
+EXPECTED_GAMES = {"QB": 14.77, "RB": 13.95, "WR": 14.23, "TE": 14.07}
 
 _SLOT_POS = {"QB": "QB", "TE": "TE"}
 _SLOT_RE = re.compile(r"^(QB|RB|WR|TE)\d*$")

@@ -1,7 +1,7 @@
 {
   "source": "live",
   "season": 2026,
-  "fetched_at": 1786154033.167179,
+  "fetched_at": 1786187375.2452412,
   "history_years": [
     2021,
     2022,
@@ -38,12 +38,12 @@
     {
       "level": "OK",
       "source": "ADP (FantasyFootballCalculator, half-PPR)",
-      "detail": "177 rows -> data/draft/adp.parquet"
+      "detail": "179 rows -> data/draft/adp.parquet"
     },
     {
       "level": "OK",
       "source": "ADP provenance",
-      "detail": "pooled from 1808 drafts 2026-08-02..2026-08-07; NOT team-count specific (see FFC_ADP_URL note)"
+      "detail": "pooled from 1889 drafts 2026-08-03..2026-08-08; NOT team-count specific (see FFC_ADP_URL note)"
     },
     {
       "level": "OK",
@@ -59,6 +59,16 @@
       "level": "OK",
       "source": "bye weeks (nflverse schedule)",
       "detail": "32 rows -> data/draft/byes.parquet"
+    },
+    {
+      "level": "OK",
+      "source": "historical byes (nflverse schedule)",
+      "detail": "160 rows -> data/draft/byes_by_season.parquet"
+    },
+    {
+      "level": "OK",
+      "source": "injury reports (nflverse)",
+      "detail": "1750 rows -> data/draft/injuries.parquet"
     }
   ]
 }

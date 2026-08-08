@@ -158,6 +158,16 @@ def fetch_extras(st: Status) -> None:
         _write(byes, "byes", st, "bye weeks (nflverse schedule)")
     except Exception as e:
         st.warn("bye weeks", f"{e}; season sim will randomize byes")
+    try:
+        hb = sources.fetch_season_byes(HISTORY_YEARS)
+        _write(hb, "byes_by_season", st, "historical byes (nflverse schedule)")
+    except Exception as e:
+        st.warn("historical byes", str(e))
+    try:
+        inj = sources.fetch_injuries(HISTORY_YEARS)
+        _write(inj, "injuries", st, "injury reports (nflverse)")
+    except Exception as e:
+        st.warn("injury reports", f"{e}; games model loses injury type")
 
 
 def main() -> int:

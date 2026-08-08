@@ -67,6 +67,17 @@ NFLVERSE_WEEKLY_PATTERNS = [
 # nfldata's games.csv is the same data, same column names, and already has the
 # full 2026 regular season — which is what bye weeks are derived from.
 NFLVERSE_SCHEDULE_URL = "https://raw.githubusercontent.com/nflverse/nfldata/master/data/games.csv"
+# Weekly NFL injury reports: body part, report status (Out/Doubtful/
+# Questionable) and practice participation. This is what lets the availability
+# model tell a hamstring from an Achilles, which matters because they recur at
+# very different rates. Verified 2026-08-08: 2021-2025 all present.
+#
+# KNOWN GAP: once a player is placed on IR he drops off the weekly report
+# entirely, so a season-ending injury often shows FEWER report rows than a
+# nagging one. Absence from this data is not absence of injury -- pair it with
+# the appearance-shape features in scripts/games_model.py.
+NFLVERSE_INJURY_URL = ("https://github.com/nflverse/nflverse-data/releases/"
+                       "download/injuries/injuries_{year}.parquet")
 FF_PLAYERIDS_URL = "https://github.com/dynastyprocess/data/raw/master/files/db_playerids.csv"
 
 
@@ -231,6 +242,51 @@ def fetch_byes(season: int) -> pd.DataFrame:
         bye = [w for w in weeks if w not in played]
         rows.append({"team": normalize_team(team),
                      "bye": bye[0] if bye else None})
+    return pd.DataFrame(rows)
+
+
+def fetch_injuries(years: list[int]) -> pd.DataFrame:
+    """Weekly injury reports, 2021+. Returns one row per player-week listed."""
+    frames = []
+    for year in years:
+        resp = _get(NFLVERSE_INJURY_URL.format(year=year))
+        frames.append(pd.read_parquet(io.BytesIO(resp.content)))
+    df = pd.concat(frames, ignore_index=True)
+    # Schema drift: 2021 has no `season_type` column, only `game_type`; 2025
+    # has both. After the concat, `season_type` exists but is null for the old
+    # rows, so filtering on it silently deleted four entire seasons and left
+    # 1750 rows that all came from 2025. `game_type` is present in every year.
+    if "game_type" in df.columns:
+        df = df[df["game_type"] == "REG"]
+    elif "season_type" in df.columns:
+        df = df[df["season_type"] == "REG"]
+    else:
+        raise RuntimeError("injury data has neither game_type nor season_type; "
+                           "refusing to guess which rows are regular season")
+    keep = ["season", "week", "team", "position", "full_name",
+            "report_primary_injury", "report_secondary_injury",
+            "report_status", "practice_status"]
+    df = df[[c for c in keep if c in df.columns]].copy()
+    df["team"] = df["team"].map(normalize_team)
+    df = df[df["position"].isin(["QB", "RB", "WR", "TE"])]
+    df["key_name"] = [player_key(n, p) for n, p
+                      in zip(df["full_name"], df["position"])]
+    return df.reset_index(drop=True)
+
+
+def fetch_season_byes(years: list[int]) -> pd.DataFrame:
+    """Bye week per team per season — needed to tell a bye from a missed game."""
+    g = pd.read_csv(io.BytesIO(_get(NFLVERSE_SCHEDULE_URL).content))
+    g = g[(g["game_type"] == "REG") & g["season"].isin(years)]
+    rows = []
+    for season, gs in g.groupby("season"):
+        weeks = sorted(gs["week"].unique())
+        teams = sorted(set(gs["home_team"]) | set(gs["away_team"]))
+        for t in teams:
+            played = set(gs[(gs["home_team"] == t) | (gs["away_team"] == t)]["week"])
+            bye = [x for x in weeks if x not in played]
+            rows.append({"season": int(season), "team": normalize_team(t),
+                         "bye": bye[0] if bye else None})
     return pd.DataFrame(rows)
 
 

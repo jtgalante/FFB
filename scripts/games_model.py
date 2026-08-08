@@ -3,50 +3,42 @@
     python -m scripts.games_model
 
 Writes research/games_model.md and data/draft/games_model.parquet, the latter
-carrying an `avail_mult` per player for the board to apply.
+carrying `exp_games` and an `avail_mult` per player for the board to apply.
 
-## The headline, which is a negative result
+## Why a games count is the wrong input
 
-**Availability is almost entirely unpredictable.** Regressing next season's
-games played on a player's own history and age, over 580 startable
-player-seasons from 2021-25, gets **R² = 0.032**. Ninety-seven percent of the
-variation in who gets hurt is not forecastable from what we have.
+Counting a player's games conflates two unrelated things. A rookie who appears
+in eight games because he sat behind a starter, and a starter who appears in
+eight games because he tore something in November, are the same number and
+completely different facts. The first predicts nothing about 2026; the second
+might.
 
-That is the finding, not a failure of the model, and it has a direct
-consequence: **the naive "he has played 10.5 games a year, so project him for
-10.5" adjustment is badly wrong.** Past games played regresses hard to the
-mean. The measured coefficient is +0.27 — a player with six fewer games of
-history than an iron man projects for about **1.7** fewer games next season,
-not six.
+The **shape** of the season separates them, and it is unambiguous in the data:
 
-## Watch for survivorship bias
+    Cam Skattebo 2025     wk 1-8 at 14.5 ppg, then nothing   -> season-ending
+    Omarion Hampton 2025  wk 1-5, gone 6-13, back 14-17      -> mid-season, returned
+    Theo Wease 2025       nothing until wk 16, then 3 games  -> late call-up, role
 
-Measured only on players who stayed startable in both seasons, the correlation
-is +0.032 and the effect vanishes entirely — because that filter deletes
-exactly the players whose injuries wrecked them. Following every startable
-player into the next season, including the 15 who disappeared from the league
-outright, restores a real if small signal. The unconditional figures are the
-ones used here.
+So each player-season is split three ways:
 
-## What the model is
+* `head`  — weeks missed BEFORE his first appearance. Role, not health.
+* `gaps`  — weeks missed inside his active window (bye excluded). Injury.
+* `tail`  — weeks missed after his last appearance. Injury, usually ending.
 
-Linear, three inputs, deliberately simple given the R²:
+and `inj_rate = (gaps + tail) / (17 - head)` — the share of the season he was
+plausibly in the role and did not play.
 
-    games_next ≈ 0.272 * (mean games in prior seasons)
-                 - 0.180 * age
-                 + 0.323 * (number of prior seasons observed)
-                 + 13.27
+## And the injury reports
 
-Age carries about as much signal as injury history does. The `n_prior` term is
-picking up "has been in the league long enough to have a track record", which
-is mostly a proxy for being an established starter.
+`data/draft/injuries.parquet` (nflverse weekly injury reports) adds the body
+part and the report status, so a hamstring can be told from an Achilles. Soft
+tissue injuries — hamstring, groin, calf, quad — are the ones with a
+reputation for recurring, and that is testable here rather than assumed.
 
-## What it deliberately does NOT do
-
-No injury-type modelling. An Achilles tear, a hamstring strain and a concussion
-are the same event here, and they are not the same thing medically or in terms
-of recurrence. That is the single biggest available improvement and it needs
-data this repo does not have.
+**Known gap:** once a player goes on IR he drops off the weekly report
+entirely, so a season-ending injury often produces FEWER report rows than a
+nagging one. The report features are therefore paired with the shape features,
+never used alone.
 """
 
 from __future__ import annotations
@@ -62,190 +54,258 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src.draft.ids import player_key  # noqa: E402
 
 WEEKLY = Path("data/draft/weekly_points.parquet")
+BYES = Path("data/draft/byes_by_season.parquet")
+INJ = Path("data/draft/injuries.parquet")
 PLAYERS = Path("data/draft/players.parquet")
 PROJ = Path("data/inputs/projections.csv")
 OUT_MD = Path("research/games_model.md")
 OUT_PQ = Path("data/draft/games_model.parquet")
 
-SEASON = 2026
-FULL = 17
-# "Startable": roughly the players a 10-team league actually rosters as starters.
+SEASON, FULL, LAST_WK = 2026, 17, 18
 CAPS = {"QB": 20, "RB": 45, "WR": 60, "TE": 20}
+SOFT_TISSUE = {"Hamstring", "Groin", "Calf", "Quadricep", "Quad", "Hip"}
 
 
-def build_training(ps: pd.DataFrame, ages: dict) -> pd.DataFrame:
-    startable = pd.concat([g.nlargest(CAPS.get(p, 40), "pts")
-                           for (s, p), g in ps.groupby(["season", "pos"])])
-    games = ps.set_index(["key_name", "season"]).games
+def season_shapes(w: pd.DataFrame, bye_of: dict) -> pd.DataFrame:
     rows = []
-    for _, r in startable.iterrows():
-        nxt = r.season + 1
-        if (ps.season == nxt).sum() == 0:
-            continue
-        prior = ps[(ps.key_name == r.key_name) & (ps.season <= r.season)]
-        a = ages.get(r.key_name)
-        if a is None or not np.isfinite(a):
-            continue
-        rows.append({
-            "key_name": r.key_name, "pos": r.pos, "season": r.season,
-            "hist_mean": prior.games.mean(), "n_prior": len(prior),
-            "age_then": a - (SEASON - r.season),
-            # 0 when the player did not appear in the league at all
-            "y": float(games.get((r.key_name, nxt), 0)),
-        })
-    return pd.DataFrame(rows)
+    for (key, name, pos, season), g in w.groupby(["key_name", "name", "pos",
+                                                  "season"], sort=False):
+        wks = sorted(g.week.tolist())
+        first, last = wks[0], wks[-1]
+        team = g.team.dropna().iloc[0] if g.team.notna().any() else None
+        bye = bye_of.get((int(season), team))
+        present = set(wks)
+        gaps = sum(1 for x in range(first, last + 1)
+                   if x not in present and x != bye)
+        head = sum(1 for x in range(1, first) if x != bye)
+        tail = sum(1 for x in range(last + 1, LAST_WK + 1) if x != bye)
+        rows.append({"key_name": key, "name": name, "pos": pos,
+                     "season": int(season), "games": len(wks), "head": head,
+                     "gaps": gaps, "tail": tail, "pts": g.pts.sum(),
+                     "ppg": g.pts.mean()})
+    d = pd.DataFrame(rows)
+    # Bracket access, not attribute access: `d.head` and `d.tail` are
+    # DataFrame METHODS, so `d.gaps + d.tail` adds an int to a bound method.
+    d["inj_missed"] = d["gaps"] + d["tail"]
+    d["opportunity"] = (FULL - d["head"]).clip(lower=1)
+    d["inj_rate"] = (d["inj_missed"] / d["opportunity"]).clip(0, 1)
+    return d
 
 
-def fit(d: pd.DataFrame, cols: list[str]):
+def injury_features(inj: pd.DataFrame) -> pd.DataFrame:
+    if inj is None or inj.empty:
+        return pd.DataFrame(columns=["key_name", "season", "n_out",
+                                     "n_soft", "n_parts"])
+    d = inj.copy()
+    d["is_out"] = d.report_status.eq("Out").astype(int)
+    d["is_soft"] = d.report_primary_injury.isin(SOFT_TISSUE).astype(int)
+    return (d.groupby(["key_name", "season"], as_index=False)
+              .agg(n_out=("is_out", "sum"), n_soft=("is_soft", "sum"),
+                   n_parts=("report_primary_injury", "nunique")))
+
+
+def fit(d, cols, target="y_games"):
     X = np.column_stack([d[c].to_numpy(float) for c in cols] + [np.ones(len(d))])
-    beta, *_ = np.linalg.lstsq(X, d.y.to_numpy(float), rcond=None)
+    y = d[target].to_numpy(float)
+    beta, *_ = np.linalg.lstsq(X, y, rcond=None)
     pred = X @ beta
-    r2 = 1 - ((d.y - pred) ** 2).sum() / ((d.y - d.y.mean()) ** 2).sum()
-    return beta, float(r2)
+    return beta, float(1 - ((y - pred) ** 2).sum() / ((y - y.mean()) ** 2).sum())
 
 
 def main() -> int:
     w = pd.read_parquet(WEEKLY)
-    ps = (w.groupby(["key_name", "name", "pos", "season"], as_index=False)
-            .agg(games=("pts", "size"), pts=("pts", "sum")))
+    byes = pd.read_parquet(BYES)
+    bye_of = {(int(r.season), r.team): r.bye for r in byes.itertuples()}
+    inj = pd.read_parquet(INJ) if INJ.exists() else None
     players = pd.read_parquet(PLAYERS)
     ages = players.dropna(subset=["age"]).set_index("key_name").age.to_dict()
 
-    d = build_training(ps, ages)
-    cols = ["hist_mean", "age_then", "n_prior"]
-    beta, r2 = fit(d, cols)
+    ps = season_shapes(w, bye_of)
+    ifeat = injury_features(inj)
+    ps = ps.merge(ifeat, on=["key_name", "season"], how="left")
+    for c in ("n_out", "n_soft", "n_parts"):
+        ps[c] = ps[c].fillna(0.0)
+
+    startable = pd.concat([g.nlargest(CAPS.get(p, 40), "pts")
+                           for (s, p), g in ps.groupby(["season", "pos"])])
+    idx = ps.set_index(["key_name", "season"])
+
+    rows = []
+    for _, r in startable.iterrows():
+        nxt = r.season + 1
+        if nxt > ps.season.max():
+            continue
+        a = ages.get(r.key_name)
+        if a is None or not np.isfinite(a):
+            continue
+        prior = ps[(ps.key_name == r.key_name) & (ps.season <= r.season)]
+        try:
+            n = idx.loc[(r.key_name, nxt)]
+            if isinstance(n, pd.DataFrame):
+                n = n.iloc[0]
+            y_games, y_inj = float(n.games), float(n.inj_rate)
+        except KeyError:
+            y_games, y_inj = 0.0, 1.0     # left the league entirely
+        rows.append({
+            "hist_games": prior.games.mean(), "n_prior": len(prior),
+            "age_then": a - (SEASON - r.season),
+            "inj_rate": r.inj_rate, "hist_inj": prior.inj_rate.mean(),
+            "n_out": r.n_out, "n_soft": r.n_soft, "n_parts": r.n_parts,
+            "y_games": y_games, "y_inj": y_inj})
+    d = pd.DataFrame(rows)
+
+    MODELS = [
+        ("games count + age + seasons (previous model)",
+         ["hist_games", "age_then", "n_prior"]),
+        ("injury-shaped rate only", ["hist_inj"]),
+        ("injury rate + age", ["hist_inj", "age_then"]),
+        ("injury rate + age + seasons", ["hist_inj", "age_then", "n_prior"]),
+        ("+ injury report features",
+         ["hist_inj", "age_then", "n_prior", "n_out", "n_soft"]),
+        ("everything", ["hist_games", "hist_inj", "age_then", "n_prior",
+                        "n_out", "n_soft", "n_parts"]),
+    ]
+    results = [(lab, cols, *fit(d, cols)) for lab, cols in MODELS]
+    best = max(results, key=lambda r: r[3])
 
     L = [f"# Expected games played, {SEASON}\n",
          "*Generated by `python -m scripts.games_model`.*\n",
-         "## Availability is ~97% unpredictable\n",
-         f"Fitted on **{len(d)} startable player-seasons**, 2021–25, following "
-         "every one into the next season including those who left the league "
-         "entirely.\n",
+         "## Separating role from health\n",
+         "A games count conflates a rookie who sat with a starter who tore "
+         "something. The **shape** of a season separates them — weeks missed "
+         "before a player's first appearance are role, weeks missed inside his "
+         "active window or after his last appearance are health.\n",
+         "```",
+         "Cam Skattebo    2025  wk 1-8 at 14.5 ppg, then nothing   -> season-ending",
+         "Omarion Hampton 2025  wk 1-5, gone 6-13, back 14-17      -> mid-season, returned",
+         "Theo Wease      2025  nothing until wk 16, then 3 games  -> late call-up, role",
+         "```\n",
+         f"Fitted on **{len(d)} startable player-seasons** (2021–25), following "
+         "every one into the next season including those who left the league.\n",
          "| model | R² |", "|---|---|"]
-    for label, c in (("last season's games only", ["hist_mean"]),
-                     ("age only", ["age_then"]),
-                     ("history + age", ["hist_mean", "age_then"]),
-                     ("history + age + seasons observed", cols)):
-        L.append(f"| {label} | {fit(d, c)[1]:.4f} |")
+    for lab, _, _, r2 in results:
+        mark = " ⬅" if lab == best[0] else ""
+        L.append(f"| {lab} | **{r2:.4f}**{mark} |")
     L.append("")
-    L.append(f"**R² = {r2:.3f}.** Age carries about as much signal as injury "
-             "history does, and together they explain three percent of the "
-             "variance. This is the central result: **who gets hurt next year "
-             "is not something this data can tell you.**\n")
-    L.append("```\ngames_next ≈ "
-             + " ".join(f"{b:+.3f}·{c}" for b, c in zip(beta, cols))
-             + f" {beta[-1]:+.2f}\n```\n")
-    L.append(f"The history coefficient is **{beta[0]:+.3f}**. A player with six "
-             f"fewer games of track record than an iron man projects for about "
-             f"**{abs(beta[0])*6:.1f} fewer games** next season — not six. "
-             "Past availability regresses hard to the mean.\n")
-    L.append("### The survivorship trap\n")
-    L.append("Measured only on players who remained startable in both seasons, "
-             "the year-over-year correlation is **+0.03** and the effect "
-             "disappears — because that filter removes exactly the players "
-             "whose injuries wrecked them. Followed unconditionally it is "
-             "**+0.11**. Small either way, but the difference is the whole "
-             "reason to be careful here.\n")
+    L.append(f"**Best: {best[3]:.3f}.** Replacing the raw games count with the "
+             f"injury-shaped rate moves R² from "
+             f"{results[0][3]:.3f} to {results[3][3]:.3f} — a real improvement, "
+             f"and still small in absolute terms. **Availability remains mostly "
+             f"unpredictable**, and any adjustment built on it must stay a "
+             f"tiebreak.\n")
+
+    coefs = dict(zip(best[1], best[2]))
+    L.append("```\n" + " ".join(f"{v:+.4f}·{k}" for k, v in coefs.items())
+             + f" {best[2][-1]:+.3f}\n```\n")
+    if "n_soft" in coefs:
+        L.append(f"Soft-tissue weeks (hamstring, groin, calf, quad, hip) carry "
+                 f"a coefficient of **{coefs['n_soft']:+.3f}** games. "
+                 + ("They do predict future absence, which is the folk wisdom "
+                    "holding up." if coefs["n_soft"] < 0 else
+                    "The sign is the wrong way round for the folk wisdom about "
+                    "soft-tissue recurrence — treat it as noise at this sample "
+                    "size.") + "\n")
+    L.append("**Report-data caveat:** a player on IR drops off the weekly "
+             "injury report, so a season-ending injury can produce fewer report "
+             "rows than a nagging one. The report features are only ever used "
+             "alongside the shape features for this reason.\n")
 
     # ---- apply to 2026 ---------------------------------------------------
     pr = pd.read_csv(PROJ)
     pr["key_name"] = [player_key(n, p) for n, p in zip(pr.name, pr.pos)]
-    hist = (ps.groupby("key_name")
-              .agg(hist_mean=("games", "mean"), n_prior=("games", "size")))
-    out = pr.merge(hist, on="key_name", how="left")
+    career = (ps.groupby("key_name")
+                .agg(hist_games=("games", "mean"), hist_inj=("inj_rate", "mean"),
+                     n_prior=("games", "size"), n_out=("n_out", "mean"),
+                     n_soft=("n_soft", "mean"), n_parts=("n_parts", "mean")))
+    out = pr.merge(career, on="key_name", how="left")
     out["age_then"] = out.key_name.map(ages)
 
-    # Players with no history or no age fall back to the league mean, which is
-    # the honest default given the R2: assume average until told otherwise.
-    league_mean = float(d.y.mean())
-    have = out.hist_mean.notna() & out.age_then.notna()
-    pred = np.full(len(out), league_mean)
-    X = np.column_stack([out.loc[have, c].to_numpy(float) for c in cols]
-                        + [np.ones(have.sum())])
-    pred[have.to_numpy()] = X @ beta
+    # APPLY the role-free model, not the best-fitting one. `hist_games` earns
+    # its R² partly by encoding "is he a starter" — and the 2026 projection
+    # already encodes that. Including it here double-counts role and punishes
+    # short careers: it drove Theo Wease, who has never been injured, to the
+    # harshest markdown on the board purely for having played three games.
+    # What we want from this model is the HEALTH component only.
+    APPLY = ["hist_inj", "age_then", "n_prior", "n_out", "n_soft"]
+    apply_beta, apply_r2 = fit(d, APPLY)
+
+    # Shrink each player's injured share toward his positional mean, weighted
+    # by how many seasons of evidence he has. One alarming season should move
+    # the estimate part of the way, not all of it.
+    SHRINK_K = 1.5
+    pos_mean = out.groupby("pos")["hist_inj"].transform("mean")
+    n_seasons = out["n_prior"].fillna(0)
+    out["hist_inj"] = ((n_seasons * out["hist_inj"].fillna(pos_mean)
+                        + SHRINK_K * pos_mean) / (n_seasons + SHRINK_K))
+
+    have = out[APPLY].notna().all(axis=1) & out.age_then.notna()
+    pred = np.full(len(out), float(d.y_games.mean()))
+    if have.any():
+        X = np.column_stack([out.loc[have, c].to_numpy(float) for c in APPLY]
+                            + [np.ones(int(have.sum()))])
+        pred[have.to_numpy()] = X @ apply_beta
     out["exp_games"] = np.clip(pred, 6.0, FULL)
 
-    # Normalise WITHIN POSITION, over the startable pool only. Two traps here,
-    # both of which produced nonsense on the first attempt:
-    #  * normalising over all 521 board players uses a denominator dragged down
-    #    by deep bench types with thin histories, so nearly every startable
-    #    player gets marked UP;
-    #  * normalising across positions would compare a quarterback's durability
-    #    to a running back's, when what matters is his durability relative to
-    #    the other quarterbacks he is being ranked against.
-    # The result redistributes projected points by durability within a
-    # position and leaves the positional scale untouched.
-    # A player with fewer than two seasons has no availability signal — a
-    # rookie who appeared in eight games was a rookie, not a fragile veteran.
-    # Left at 1.0 the model was marking down Cam Skattebo and Omarion Hampton,
-    # both 2025 rookies, as injury risks. No information means no adjustment.
+    # Normalise within position over the startable pool (see the note in the
+    # previous revision: a global denominator marks nearly everyone up, and a
+    # cross-position one compares a QB's durability to a running back's).
     MIN_SEASONS = 2
     out["avail_mult"] = 1.0
-    thin = out.n_prior.fillna(0) < MIN_SEASONS
     for pos, n in CAPS.items():
         at = out[out.pos == pos]
         if at.empty:
             continue
-        startable = at.nlargest(min(n, len(at)), "proj").index
-        ref = out.loc[startable, "exp_games"].mean()
+        ref = out.loc[at.nlargest(min(n, len(at)), "proj").index,
+                      "exp_games"].mean()
         if ref > 0:
-            out.loc[at.index, "avail_mult"] = (out.loc[at.index, "exp_games"]
-                                               / ref)
-    out.loc[thin, "avail_mult"] = 1.0
-    out["avail_mult"] = out.avail_mult.clip(0.6, 1.15).round(3)
+            out.loc[at.index, "avail_mult"] = out.loc[at.index, "exp_games"] / ref
+    # DAMP by how much the model actually knows. A raw multiplier spanning
+    # 0.60–1.15 asserts ±40% swings in projected points on the strength of an
+    # R² of 0.03 — indefensible. Scaling the deviation from 1.0 by the model's
+    # correlation (√R²) keeps the ORDERING intact while sizing the magnitude to
+    # the evidence. The result is a few percent either way: a tiebreak, which
+    # is all this is entitled to be.
+    reliability = float(np.sqrt(max(apply_r2, 0.0)))
+    out["avail_mult"] = 1.0 + (out["avail_mult"] - 1.0) * reliability
+    out.loc[n_seasons == 0, "avail_mult"] = 1.0
+    out["avail_mult"] = out.avail_mult.round(3)
     out["proj_adj"] = (out.proj * out.avail_mult).round(1)
 
-    L.append("## What it changes on the 2026 board\n")
-    L.append("`avail_mult` is normalised **within position**, over the "
-             "startable pool — so this redistributes projected points by "
-             "durability among the players actually competing for the same "
-             "slot, rather than shaving everyone or comparing a "
-             "quarterback's durability to a running back's.\n")
-    L.append(f"Players with fewer than {MIN_SEASONS} seasons of history are "
-             f"left untouched at 1.00. A rookie who appeared in eight games "
-             f"was a rookie, not a fragile veteran, and the model was "
-             f"otherwise marking down 2025 first-year players as injury "
-             f"risks ({int(thin.sum())} of {len(out)} board players).\n")
-    # Top-60 by raw projection is all quarterbacks; take the startable pool
-    # at each position so the movers table spans the board.
     top = pd.concat([out[out.pos == k].nlargest(min(v, (out.pos == k).sum()),
                                                 "proj")
                      for k, v in CAPS.items()]).copy()
     top["delta"] = top.proj_adj - top.proj
-    L.append("**Marked down most**\n")
-    L.append("| player | pos | age | history | exp games | proj | adjusted | Δ |")
-    L.append("|---|---|---|---|---|---|---|---|")
-    for _, r in top.nsmallest(8, "delta").iterrows():
-        L.append(f"| {r['name']} | {r.pos} | {r.age_then:.0f} | "
-                 f"{r.hist_mean:.1f} | {r.exp_games:.1f} | {r.proj:.0f} | "
-                 f"**{r.proj_adj:.0f}** | {r.delta:+.0f} |")
-    L.append("")
-    L.append("**Marked up most**\n")
-    L.append("| player | pos | age | history | exp games | proj | adjusted | Δ |")
-    L.append("|---|---|---|---|---|---|---|---|")
-    for _, r in top.nlargest(8, "delta").iterrows():
-        L.append(f"| {r['name']} | {r.pos} | {r.age_then:.0f} | "
-                 f"{r.hist_mean:.1f} | {r.exp_games:.1f} | {r.proj:.0f} | "
-                 f"**{r.proj_adj:.0f}** | {r.delta:+.0f} |")
-    L.append("")
+    L.append("## What it changes on the 2026 board\n")
+    for label, sub in (("Marked down most", top.nsmallest(10, "delta")),
+                       ("Marked up most", top.nlargest(8, "delta"))):
+        L.append(f"**{label}**\n")
+        L.append("| player | pos | age | injured share of career | exp games | proj | adjusted | Δ |")
+        L.append("|---|---|---|---|---|---|---|---|")
+        for _, r in sub.iterrows():
+            L.append(f"| {r['name']} | {r.pos} | {r.age_then:.0f} | "
+                     f"{r.hist_inj*100:.0f}% | {r.exp_games:.1f} | "
+                     f"{r.proj:.0f} | **{r.proj_adj:.0f}** | {r.delta:+.0f} |")
+        L.append("")
     L.append("### How to use this\n")
-    L.append("**As a tiebreak, not a board.** At R² = 0.03 the model is barely "
-             "better than assuming everyone is average, and it should never "
-             "override a real gap in projected points. Where two players are "
-             "close, prefer the durable one. Where the adjustment is large "
-             "*and* the player sits at a decision point, look at the actual "
-             "injury — this model cannot tell an Achilles tear from a "
-             "hamstring.\n")
+    L.append(f"The applied model is the **role-free** one (R² = {apply_r2:.3f}), "
+             f"not the best-fitting one. `hist_games` earns part of its R² by "
+             f"encoding *is he a starter*, and the 2026 projection already "
+             f"encodes that — including it double-counts role and punishes "
+             f"short careers. The multiplier is then damped by √R² = "
+             f"{reliability:.2f}, which preserves the ordering while sizing the "
+             f"magnitude to what the model actually knows.\n")
+    L.append(f"**As a tiebreak.** At R² = {best[3]:.2f} the model is a little "
+             "better than assuming everyone is average and nowhere near good "
+             "enough to override a real gap in projected points. Where two "
+             "players are close, prefer the durable one.\n")
 
     OUT_PQ.parent.mkdir(parents=True, exist_ok=True)
-    out[["key_name", "name", "pos", "exp_games", "avail_mult",
-         "proj", "proj_adj"]].to_parquet(OUT_PQ, index=False)
+    out[["key_name", "name", "pos", "exp_games", "avail_mult", "proj",
+         "proj_adj", "hist_inj", "n_prior"]].to_parquet(OUT_PQ, index=False)
     OUT_MD.write_text("\n".join(L))
-    print(f"R2={r2:.4f}  beta={dict(zip(cols, beta.round(3)))} const={beta[-1]:.2f}")
-    print(f"Wrote {OUT_MD} and {OUT_PQ}")
-    print(out.nlargest(12, "proj")[["name", "pos", "exp_games",
-                                    "avail_mult", "proj", "proj_adj"]]
-          .to_string(index=False))
+    for lab, _, _, r2 in results:
+        print(f"  R2={r2:.4f}  {lab}")
+    print(f"\nWrote {OUT_MD} and {OUT_PQ}")
     return 0
 
 

@@ -1,0 +1,182 @@
+# Verified league history — the authority for all outcome-linked analysis.
+#
+# The platform caches CANNOT be trusted for champions. The ESPN years ran a
+# dual-points regular season (1 pt for the matchup win + 1 pt for a weekly
+# top-5 score) that ESPN could not represent, and the playoff format lets the
+# regular-season winner choose its first-round opponent. ESPN's recorded
+# "champion" is wrong for at least 2012, 2017, and 2020.
+#
+# Names are canonical (src/config.py MANAGER_ALIASES). Note that the manager
+# exported by ESPN as "Donnie Darco" is Peter Wallach.
+#
+# source:
+#   email        - a league email explicitly names the champion (strongest)
+#   email_list   - a commissioner's retrospective list of past winners
+#   derived      - forced by published cumulative title counts (see notes)
+#   bracket      - resolved from the Sleeper playoff bracket
+#
+# Set `verified: true` once James confirms a season from memory; verified
+# seasons are never overwritten by `python -m scripts.rebuild_standings --write`.
+#
+# NOTE: a separate "Gaetz Dynasty" league (Sleeper) also runs from 2024. Its
+# winners were Anthony Lettieri (2024) and Brian Dzuris (2025). Those are NOT
+# this league and must never be mixed into this file.
+
+league: Chase for the Gaetz (CFTG) redraft
+
+seasons:
+  2010:
+    champion: Donnie Darco          # Peter Wallach
+    runner_up: null
+    scoring: dual_points
+    source: email_list
+    verified: false
+    notes: "Commissioner's all-time winners list, 2014-12-22: '2010: Peter'."
+
+  2011:
+    champion: Jonathan Wiggins
+    runner_up: Stephen Rogers
+    sacko: Matt McCauley
+    scoring: dual_points
+    source: email
+    verified: false
+    notes: "Gaetz Bowl final 2011-12-20: 'Cromartie's Child Care 123.4 / Team
+      Rogers 85.1'; congratulated by Peter Wallach 2011-12-28."
+
+  2012:
+    champion: Bryan Cannon
+    runner_up: null
+    scoring: dual_points
+    source: email_list
+    verified: false
+    notes: "ESPN cache says Anthony Lettieri — WRONG. Commissioner's list
+      2014-12-22: '2012: Bryan'."
+
+  2013:
+    champion: Anthony Lettieri
+    runner_up: null
+    sacko: Donnie Darco
+    scoring: dual_points
+    source: email_list
+    verified: false
+    notes: "Commissioner's list 2014-12-22: '2013: Tony'."
+
+  2014:
+    champion: Donnie Darco          # Peter Wallach
+    runner_up: Tyler Clark
+    scoring: dual_points
+    source: email
+    verified: false
+    notes: "2014-12-22 'Gaetz Champion': 'Peter Wallach ... Runner up: Tyler
+      Clark ... Final Score: 207.1 - 182.8'."
+
+  2015:
+    champion: Anthony Lettieri
+    runner_up: Jonathan Wiggins
+    sacko: Brian Dzuris
+    scoring: dual_points
+    source: email
+    verified: false
+    notes: "2016-01-01: 'our 2015 Gaetz Champion Anthony Pascquale Lettieri'.
+      Payouts confirm Jonny as runner-up and regular-season winner."
+
+  2016:
+    champion: Matt McCauley
+    runner_up: Anthony Lettieri
+    scoring: dual_points
+    source: email
+    verified: false
+    notes: "Championship was Tone vs Matty (2016-12-21). Matt claims the title
+      2017-01-31; corroborated by career counts in the 2018-01-03 email."
+
+  2017:
+    champion: Brendan Gamble
+    runner_up: Jonathan Wiggins
+    sacko: James Galante
+    scoring: dual_points
+    source: email
+    verified: false
+    notes: "ESPN cache says Jonathan Wiggins — WRONG; Jonny was runner-up.
+      2018-01-03 'Final Standings': Brendan 'rode ... to hold off Jonny'."
+
+  2018:
+    champion: Matt McCauley
+    runner_up: Donnie Darco
+    sacko: Anthony Lettieri
+    scoring: dual_points
+    source: derived
+    verified: false
+    notes: "Final was Matt v Peter (2018-12-18) but the result was never
+      emailed. Forced by published title counts: 2018-01-03 'Matt, Tony, Pete,
+      Bryan - 2 / Jonny, Brendan - 1' vs 2022-01-04 'Tony, Peter, Matt - 3 /
+      Bryan - 2 / Jonny, Brendan, Biscuit - 1'. Peter and Matt each gained one
+      across 2018-2021; 2019=Tony and 2021=Biscuit are explicit, and Brendan
+      gained none, so 2020=Peter (his final was v Brendan) and 2018=Matt.
+      CONFIRM FROM MEMORY."
+
+  2019:
+    champion: Anthony Lettieri
+    runner_up: Bryan Cannon
+    sacko: Stephen Rogers
+    scoring: dual_points
+    source: email
+    verified: false
+    notes: "2019-12-24 'Champion': 'Congrats to Tone Bone. He did it.'
+      Tyler Clark was the regular-season winner but lost in the semi-final."
+
+  2020:
+    champion: Donnie Darco          # Peter Wallach
+    runner_up: Brendan Gamble
+    scoring: dual_points
+    source: derived
+    verified: false
+    notes: "ESPN cache says Brendan Gamble — almost certainly WRONG. Finalists
+      confirmed 2020-12-15; result never emailed. Same title-count derivation
+      as 2018. CONFIRM FROM MEMORY."
+
+  2021:
+    champion: Stephen Rogers
+    runner_up: Anthony Lettieri
+    scoring: dual_points
+    source: email
+    verified: false
+    notes: "2022-01-04 'Champion': 'We officially have a new inductee in the
+      champions club. Congrats Bisc.'"
+
+  2022:
+    champion: Tyler Clark
+    runner_up: Bryan Cannon
+    sacko: Anthony Lettieri
+    scoring: dual_points
+    source: email
+    verified: false
+    notes: "2023-01-04 'The League': 'We have crowned a first-time champion.
+      Congrats, Tyler'."
+
+  2023:
+    champion: Matt McCauley
+    runner_up: Brendan Gamble
+    scoring: dual_points
+    source: email
+    verified: false
+    notes: "2024-01-02 'League Winner': 'the official 2023 CFTG champion, and
+      now the league's official first-ever FOUR time winner, is: Matthew Ryan
+      McCauley.'"
+
+  2024:
+    champion: James Galante
+    runner_up: Stephen Rogers
+    scoring: dual_points
+    source: bracket
+    verified: false
+    notes: "First Sleeper season; league comms moved to GroupMe so no email
+      record exists. Resolved from the Sleeper week-17 bracket.
+      CONFIRM FROM MEMORY."
+
+  2025:
+    champion: Bryan Cannon
+    runner_up: James Galante
+    scoring: dual_points
+    source: bracket
+    verified: false
+    notes: "Resolved from the Sleeper week-17 bracket. CONFIRM FROM MEMORY."

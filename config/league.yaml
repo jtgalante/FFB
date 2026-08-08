@@ -74,20 +74,39 @@ scoring:
 
 # --- Engine parameters (Section 7 of the spec) ---
 
-# Both variance knobs are ZERO, on the evidence in research/variance_study.md.
+# Both weights are DERIVED FROM research/variance_study.md rather than assumed.
 #
 # lambda_risk is the penalty on weekly inconsistency (utility = mean - lambda *
-# sd); ceiling_weight is the opposite tilt, favouring high-variance players in
-# the late rounds. Both bet that volatility is worth something here. It is not:
-# one point per week of expected scoring buys +1.72pp of championship
-# probability, while the ENTIRE realistic range of weekly standard deviation
-# (sigma 12 -> 32, wider than any roster this league has fielded) buys +0.59pp.
+# sd). The spec set it to +0.5, i.e. "give up half a point of expected scoring
+# to remove one point of weekly swing." The study measured that exchange rate
+# and it points the other way, faintly:
 #
-# The measured sign on sigma is very slightly positive, which would argue for a
-# small NEGATIVE lambda. It is not worth acting on — +0.59pp carries a +/-0.17pp
-# error bar, so tuning to it is fitting noise. Zero is the honest value: spend
-# the modelling effort on projections and price instead.
-lambda_risk: 0.0
+#     1 pt/week of expected scoring   -> +1.72 pp of championship probability
+#     sigma 12 -> 32 (20 units of sd) -> +0.59 pp  (+/- 0.17)
+#
+#     per unit of sd  = 0.59 / 20      = 0.0295 pp
+#     in mean-equivalent = 0.0295/1.72 = 0.0172 pts/week
+#     => lambda_risk = -0.0172
+#
+# Negative because variance is very slightly HELPFUL for title odds: it costs
+# you seeding (dual points fall 14.25 -> 14.13 as sigma rises, and the top-5
+# bonus is a threshold, so ceiling weeks are capped while floor weeks still
+# cost) but buys a little in the bracket. Those nearly cancel.
+#
+# At this magnitude it is decision-irrelevant: two players with equal means and
+# sigma 10 apart differ by 0.17 pts/week, about 2.4 points across a season. It
+# is set to the measured value anyway, so that nobody reintroduces a large
+# positive penalty without new evidence.
+lambda_risk: -0.017
+
+# Zero, and this one is a harder zero than lambda. The study finds NO support
+# for tilting toward high-variance players late; the effect it measured is
+# about weekly variance at a fixed mean, and it is ~nil. The usual argument for
+# late upside is different — the waiver wire truncates the downside, so a bust
+# is cheap — and that argument is WEAKER here than in most leagues because
+# there is no IR slot, so a dud occupies one of only seven bench spots all
+# season. If a late-round upside tilt is ever wanted, it needs its own
+# parameter, its own justification, and its own test.
 ceiling_weight: 0.0
 #
 # CAUTION for whoever revisits this: variance_study.md measures WEEKLY variance

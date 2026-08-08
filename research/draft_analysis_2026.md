@@ -167,21 +167,40 @@ calculation this slot depends on. Per-player `adp_sd` is already in
 
 From `board_2026.md`, 2,000 simulations, RB tilt calibrated to this room.
 
-**Pick 1 — Jahmyr Gibbs (170 VOR).** Bijan is 165 and equivalent; McCaffrey and
-Taylor drop to 128/123. Take a back.
+These are what the simulation *actually drafts*, choosing at each of my picks
+the player who adds most to my best starting lineup against replacement-level
+alternatives — not the highest VOR in isolation. Percentages are share of sims.
 
-**Picks 20/21 — Josh Allen (91%) plus the best RB/WR.** Realistic partners:
-Breece Hall (62 VOR, 61%), Hampton (71, 36%), Jacobs (72, 33%), London (74, 21%).
-Take the best two available; there is no sequencing risk inside the pair.
+| pick | choice |
+|---|---|
+| **1** | **Jahmyr Gibbs, 100%** |
+| **20** | best RB/WR: St. Brown 14%, Chase Brown 10%, Smith-Njigba 9%, Barkley 9% |
+| **21** | **Josh Allen 22%**, Jacobs 19%, London 13%, Hampton 13% |
+| **40** | **Trey McBride 67%**, Brock Bowers 27% — *a top-two TE 94% of the time* |
+| **41** | best RB: Etienne 18%, Swift 17%, Javonte Williams 12% |
+| **60** | **a quarterback 53%**: Daniels 32%, Burrow 8%, Hurts 7%, Jackson 6% |
 
-**Picks 40/41 — Trey McBride (85%) plus the best RB/WR.** Likely partners:
-Swift (38, 44%), Nabers (30, 47%).
+**Order inside a pair is irrelevant.** Picks 20 and 21 are consecutive, so the
+two players you end up with are the same whichever you name first. Allen
+appearing at 21 rather than 20 is an artefact of greedy ordering, not strategy.
 
-**Picks 60/61 — best available.** With QB and TE solved, this is pure VOR.
+**Correcting my own earlier overconfidence: Allen is not a lock.** He is ~100%
+*available* at 20/21, but taking him is only right about 22% of the time,
+because Jacobs (72 VOR), London (74) and Hampton (71) are genuine rivals at the
+same picks and Allen is 70. The rule that survives is the one about the cliff,
+not about Allen specifically:
 
-Result after four pairs: an elite RB, an elite QB, an elite TE, and three or
-four RB/WR — from a room that will have spent its early capital almost entirely
-on running backs.
+> **Take Allen at 20/21 only if the best RB/WR there is worth less than ~70.
+> Otherwise take the skill player and let the QB come at 60.**
+
+That works because the fallback is good: the sim takes a quarterback at pick 60
+in 53% of runs — Daniels, Burrow, Hurts or Jackson — which is exactly the round
+5–6 the room's champions historically used. The two branches are not far apart
+in value, which is why this is a decision rule rather than a script.
+
+**The tight end call is the firm one.** A top-two TE at pick 40 happens in 94%
+of simulations, and nothing else in that window is close. If you remember one
+thing from this document, it is pick 40.
 
 ## 7. What would change this
 
@@ -205,11 +224,11 @@ on running backs.
 2. **No ECR, so no market uncertainty.** The CSV export gives projections but
    not consensus rank or its dispersion. Every projection here is a point
    estimate from one source with no confidence interval.
-3. **The opponent model is nine people, calibrated on one aggregate statistic.**
-   It reproduces "≈12 RBs gone by pick 19" and randomises seat order because the
-   2026 draft order is unknown. Per-manager tendencies in
-   `room_tendencies.json` are **not yet wired in** — Dzuris's early QB and
-   Cannon's early TE are the two that would most change §5.2 and §5.3.
+3. **The opponent model is nine individuals, but a thin model of each.** Every
+   opponent now carries his own RB lean and his own historical first-QB and
+   first-TE round from `room_tendencies.json`, and seat order is redrawn each
+   sim because the 2026 draft order is unknown. Still unmodelled: run-chasing
+   (Clark, 1.27x), player loyalty (rebuy rates), and any reaction to what I do.
 4. **Projections are single-source.** No blending, no regression, no
    games-played model. §5.4 argues availability is the dominant risk, and it is
    currently unmodelled.
@@ -227,3 +246,5 @@ Recorded because several were repeated in conversation before being caught.
 | The TE pocket leads its window by ~32 VOR | ~19 | same |
 | James is 1st in points per week | 2nd, by 0.3 | included playoff weeks |
 | The room being "late on QB" is an edge | It is at market; the *scoring system* is the edge | conflated relative-to-other-leagues with relative-to-price |
+| "Take Josh Allen at 20" | Take him only if the best RB/WR there is worth <~70 VOR; right ~22% of the time | greedy VOR ignored that RB/WR rivals at those picks are worth 71-74 |
+| Opponents modelled as one average RB-biased drafter | Nine individuals, from `room_tendencies.json` | placeholder that survived longer than it should have |

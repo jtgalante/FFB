@@ -142,14 +142,6 @@ and Jr./III stripped; known aliases like Hollywood → Marquise Brown mapped in
 `src/draft/ids.py`). Unmatched players are reported rather than silently
 dropped — if a name mismatch hides a first-rounder, you want to know.
 
-## Offline development fixture
-
-Without any network, `python -m src.draft.cli bootstrap` derives a working
-dataset from this repo's committed league caches (2024–25 weekly scoring and
-the 2025 draft board). It is real data but *stale*: 2025 prices and 2025
-production, useful only for building and testing the engine. Anything produced
-from it is watermarked `source: fixture`. Never draft off it.
-
 ## Reading live league settings from Sleeper
 
 `api.sleeper.app` is blocked from the cloud sandbox, so run this on your laptop:

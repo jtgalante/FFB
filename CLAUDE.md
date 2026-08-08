@@ -77,7 +77,6 @@ The engine reads only local files (`data/draft/`), so draft day needs no network
 python -m scripts.sleeper_settings          # live league settings -> config diff
 python -m scripts.fetch_data                # ADP, weeklies, byes, player index
 python -m scripts.ingest_projections        # FantasyPros CSV exports -> projections
-python -m src.draft.cli bootstrap           # offline fixture from committed caches
 ```
 
 **Projections come from CSV export, not the network.** Save the FantasyPros

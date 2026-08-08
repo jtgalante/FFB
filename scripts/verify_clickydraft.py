@@ -54,12 +54,21 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from src.config import get_canonical_name  # noqa: E402
 from src.draft.ids import normalize_name  # noqa: E402
+from src.draft.draftmath import pick_of as _pick_of  # noqa: E402
+from src.draft.draftmath import slot_of as _slot_of  # noqa: E402
 
 BOARDS = Path("data/inputs/clickydraft")
 CLICKY = Path("data/clickydraft_cache.json")
 CACHE = Path("data/draft_cache.json")
-TEAMS = 15  # placeholder, overwritten below
 TEAMS = 10
+
+
+def slot_of(pick: int) -> int:
+    return _slot_of(pick, TEAMS)
+
+
+def pick_of(rnd: int, slot: int) -> int:
+    return _pick_of(rnd, slot, TEAMS)
 
 NICK = {
     "cardinals": "ARI", "falcons": "ATL", "ravens": "BAL", "bills": "BUF",
@@ -86,15 +95,6 @@ def norm(name: str) -> str:
         first = re.split(r"\s+", s)[0].lower()
         return "DEF:" + NICK.get(first, first.upper())
     return normalize_name(s)
-
-
-def slot_of(pick: int) -> int:
-    r, i = divmod(pick - 1, TEAMS)
-    return i + 1 if r % 2 == 0 else TEAMS - i
-
-
-def pick_of(rnd: int, slot: int) -> int:
-    return (rnd - 1) * TEAMS + (slot if rnd % 2 else TEAMS - slot + 1)
 
 
 def load_boards() -> dict[int, list[list[str]]]:

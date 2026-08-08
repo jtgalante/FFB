@@ -187,7 +187,14 @@ def main() -> int:
         mark = " ⬅" if lab == best[0] else ""
         L.append(f"| {lab} | **{r2:.4f}**{mark} |")
     L.append("")
-    L.append(f"**Best: {best[3]:.3f}.** Replacing the raw games count with the "
+    L.append("**These are IN-SAMPLE and should not be read as accuracy.** "
+             "In-sample R² climbs whenever a feature is added. Scored by "
+             "leave-one-season-out cross-validation in "
+             "`research/injury_signal.md`, the ranking inverts: injury rate + "
+             "age is the best model at **+0.017**, and the 'everything' model "
+             "below scores **-0.036** — worse than guessing the average. This "
+             "script therefore APPLIES two features, not seven.\n")
+    L.append(f"**Best in-sample: {best[3]:.3f}.** Replacing the raw games count with the "
              f"injury-shaped rate moves R² from "
              f"{results[0][3]:.3f} to {results[3][3]:.3f} — a real improvement, "
              f"and still small in absolute terms. **Availability remains mostly "
@@ -226,8 +233,23 @@ def main() -> int:
     # short careers: it drove Theo Wease, who has never been injured, to the
     # harshest markdown on the board purely for having played three games.
     # What we want from this model is the HEALTH component only.
-    APPLY = ["hist_inj", "age_then", "n_prior", "n_out", "n_soft"]
-    apply_beta, apply_r2 = fit(d, APPLY)
+    # CROSS-VALIDATED feature set, not the best in-sample one. The R2 table
+    # above is in-sample and rises automatically as features are added; it is
+    # not evidence. `scripts.injury_signal` scores the same candidates by
+    # leave-one-season-out CV and the verdict is blunt:
+    #
+    #     injury-shaped rate + age        out-of-sample R2 = +0.017  <- best
+    #     + weeks listed Out                                 +0.014
+    #     + soft tissue                                      +0.011
+    #     every injury feature                               -0.036  <- WORSE
+    #                                                                   than
+    #                                                                   guessing
+    #
+    # The "everything" model that scored 0.050 in-sample is worse than
+    # predicting the mean out of sample. Two features is the honest ceiling.
+    APPLY = ["hist_inj", "age_then"]
+    apply_beta, apply_r2_insample = fit(d, APPLY)
+    apply_r2 = 0.0174   # measured out-of-sample; see research/injury_signal.md
 
     # Shrink each player's injured share toward his positional mean, weighted
     # by how many seasons of evidence he has. One alarming season should move
@@ -287,8 +309,9 @@ def main() -> int:
                      f"{r.proj:.0f} | **{r.proj_adj:.0f}** | {r.delta:+.0f} |")
         L.append("")
     L.append("### How to use this\n")
-    L.append(f"The applied model is the **role-free** one (R² = {apply_r2:.3f}), "
-             f"not the best-fitting one. `hist_games` earns part of its R² by "
+    L.append(f"The applied model is the **role-free, cross-validated** one "
+             f"(out-of-sample R² = {apply_r2:.3f}), not the best-fitting one. "
+             f"`hist_games` earns part of its R² by "
              f"encoding *is he a starter*, and the 2026 projection already "
              f"encodes that — including it double-counts role and punishes "
              f"short careers. The multiplier is then damped by √R² = "

@@ -23,7 +23,9 @@ Fitted on **580 startable player-seasons** (2021–25), following every one into
 | + injury report features | **0.0340** |
 | everything | **0.0504** ⬅ |
 
-**Best: 0.050.** Replacing the raw games count with the injury-shaped rate moves R² from 0.032 to 0.024 — a real improvement, and still small in absolute terms. **Availability remains mostly unpredictable**, and any adjustment built on it must stay a tiebreak.
+**These are IN-SAMPLE and should not be read as accuracy.** In-sample R² climbs whenever a feature is added. Scored by leave-one-season-out cross-validation in `research/injury_signal.md`, the ranking inverts: injury rate + age is the best model at **+0.017**, and the 'everything' model below scores **-0.036** — worse than guessing the average. This script therefore APPLIES two features, not seven.
+
+**Best in-sample: 0.050.** Replacing the raw games count with the injury-shaped rate moves R² from 0.032 to 0.024 — a real improvement, and still small in absolute terms. **Availability remains mostly unpredictable**, and any adjustment built on it must stay a tiebreak.
 
 ```
 +0.7354·hist_games +10.7860·hist_inj -0.2022·age_then +0.3622·n_prior -0.3179·n_out -0.1830·n_soft -0.1059·n_parts +5.989
@@ -39,32 +41,32 @@ Soft-tissue weeks (hamstring, groin, calf, quad, hip) carry a coefficient of **-
 
 | player | pos | age | injured share of career | exp games | proj | adjusted | Δ |
 |---|---|---|---|---|---|---|---|
-| Jayden Daniels | QB | 25 | 31% | 11.5 | 363 | **354** | -9 |
-| Matthew Stafford | QB | 38 | 18% | 12.0 | 353 | **347** | -6 |
-| Dak Prescott | QB | 33 | 21% | 12.5 | 356 | **352** | -4 |
-| Bucky Irving | RB | 23 | 21% | 12.5 | 204 | **201** | -3 |
-| Omarion Hampton | RB | 23 | 32% | 12.7 | 238 | **235** | -3 |
-| Mike Evans | WR | 32 | 18% | 12.3 | 170 | **168** | -3 |
-| Christian McCaffrey | RB | 30 | 25% | 13.0 | 296 | **293** | -2 |
-| Jaxson Dart | QB | 23 | 25% | 12.8 | 345 | **343** | -2 |
-| Davante Adams | WR | 33 | 12% | 12.7 | 188 | **185** | -2 |
-| Calvin Ridley | WR | 31 | 29% | 12.3 | 128 | **126** | -2 |
+| Matthew Stafford | QB | 38 | 18% | 11.4 | 353 | **348** | -5 |
+| Dak Prescott | QB | 33 | 21% | 12.0 | 356 | **354** | -3 |
+| Christian McCaffrey | RB | 30 | 25% | 12.4 | 296 | **293** | -2 |
+| Derrick Henry | RB | 32 | 14% | 12.4 | 264 | **262** | -2 |
+| Mike Evans | WR | 32 | 18% | 12.3 | 170 | **169** | -2 |
+| Davante Adams | WR | 33 | 12% | 12.3 | 188 | **186** | -2 |
+| J.K. Dobbins | RB | 27 | 43% | 12.2 | 162 | **161** | -2 |
+| Calvin Ridley | WR | 31 | 29% | 12.1 | 128 | **127** | -2 |
+| Travis Kelce | TE | 36 | 9% | 12.0 | 144 | **143** | -1 |
+| Kyler Murray | QB | 29 | 27% | 12.4 | 313 | **312** | -1 |
 
 **Marked up most**
 
 | player | pos | age | injured share of career | exp games | proj | adjusted | Δ |
 |---|---|---|---|---|---|---|---|
-| Trevor Lawrence | QB | 26 | 15% | 14.3 | 344 | **349** | +4 |
-| Justin Herbert | QB | 28 | 12% | 14.1 | 341 | **345** | +4 |
-| Drake Maye | QB | 23 | 18% | 14.0 | 373 | **376** | +3 |
-| Amon-Ra St. Brown | WR | 26 | 7% | 14.5 | 261 | **264** | +3 |
-| Bijan Robinson | RB | 24 | 7% | 14.3 | 332 | **336** | +3 |
-| Jaxon Smith-Njigba | WR | 24 | 6% | 14.3 | 269 | **272** | +3 |
-| Josh Allen | QB | 30 | 10% | 13.8 | 416 | **418** | +2 |
-| Jalen Hurts | QB | 28 | 14% | 13.9 | 362 | **364** | +2 |
+| Drake Maye | QB | 23 | 18% | 13.6 | 373 | **376** | +3 |
+| Caleb Williams | QB | 24 | 14% | 13.5 | 344 | **346** | +3 |
+| Jaxson Dart | QB | 23 | 25% | 13.3 | 345 | **348** | +2 |
+| Bijan Robinson | RB | 24 | 7% | 13.8 | 332 | **334** | +2 |
+| Jahmyr Gibbs | RB | 24 | 10% | 13.7 | 337 | **339** | +2 |
+| Ashton Jeanty | RB | 22 | 13% | 13.9 | 247 | **249** | +2 |
+| Trevor Lawrence | QB | 26 | 15% | 13.2 | 344 | **346** | +2 |
+| Bo Nix | QB | 26 | 14% | 13.3 | 340 | **342** | +2 |
 
 ### How to use this
 
-The applied model is the **role-free** one (R² = 0.034), not the best-fitting one. `hist_games` earns part of its R² by encoding *is he a starter*, and the 2026 projection already encodes that — including it double-counts role and punishes short careers. The multiplier is then damped by √R² = 0.18, which preserves the ordering while sizing the magnitude to what the model actually knows.
+The applied model is the **role-free, cross-validated** one (out-of-sample R² = 0.017), not the best-fitting one. `hist_games` earns part of its R² by encoding *is he a starter*, and the 2026 projection already encodes that — including it double-counts role and punishes short careers. The multiplier is then damped by √R² = 0.13, which preserves the ordering while sizing the magnitude to what the model actually knows.
 
 **As a tiebreak.** At R² = 0.05 the model is a little better than assuming everyone is average and nowhere near good enough to override a real gap in projected points. Where two players are close, prefer the durable one.

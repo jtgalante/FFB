@@ -13,7 +13,9 @@ The draft is imminent — August 2026.
 |---|---|
 | `research/draft_analysis_2026.md` | **The synthesis + the pick-by-pick plan. Start here.** |
 | `research/board_2026.md` | Generated board: VOR, tiers, P(available) at each pick |
-| `research/availability.md` | Games missed: per-player durability + whether anyone is truly injury-unlucky |
+| `research/injury_signal.md` | **What in the injury data actually predicts (cross-validated)** + per-player durability score |
+| `research/availability.md` | Games missed: base rates + whether anyone is truly injury-unlucky |
+| `research/games_model.md` | Expected games played 2026, and the role-vs-health decomposition |
 | `research/room_study.md` | 16 years of opponent draft tendencies + scouting reports |
 | `research/variance_study.md` | **Rejects the original spec's core premise** — read before designing anything |
 | `research/league_rules.md` | Dated rule timeline with quoted evidence |
@@ -125,7 +127,9 @@ environment's network policy.
   `python -m scripts.rebuild_standings --validate`,
   `python -m scripts.harpers_index [--sharpness 1|2|3]`,
   `python -m scripts.build_board`,
-  `python -m scripts.availability`.
+  `python -m scripts.availability`,
+  `python -m scripts.games_model`,
+  `python -m scripts.injury_signal`.
 
 ## Status
 

@@ -72,11 +72,13 @@ def fetch_projections_and_ecr(st: Status) -> None:
         try:
             df = fp.fetch_projections(SEASON, key)
             _write(df, "projections", st, "projections (FantasyPros API)")
+            key_failed = False
+        except fp.BudgetExceeded as e:
+            st.warn("projections (FantasyPros API)", str(e))
+            key_failed = True
         except Exception as e:
             st.warn("projections (FantasyPros API)", f"{e}; trying scrape")
             key_failed = True
-        else:
-            key_failed = False
         try:
             ecr = fp.fetch_consensus_rankings(SEASON, key)
             _write(ecr, "ecr", st, "ECR (FantasyPros API)")
@@ -149,6 +151,16 @@ def main() -> int:
     INPUTS_DIR.mkdir(parents=True, exist_ok=True)
     st = Status()
 
+    if fp.api_key():
+        used, left = fp.calls_used_today(), fp.calls_remaining()
+        print(f"FantasyPros API budget: {used}/{fp.DAILY_CALL_LIMIT} used today, "
+              f"{left} left.")
+        print("This run needs at most 6 calls (projections 1-4, ECR 1, ADP 1); "
+              "cached responses under 24h cost nothing.\n")
+        if left < 6:
+            print("Not enough budget for a clean full refresh — cached data "
+                  "will be reused where possible.\n")
+
     print(f"Fetching {SEASON} draft data into {DRAFT_DATA_DIR}/\n")
     print("Projections / ECR:")
     fetch_projections_and_ecr(st)
@@ -188,7 +200,13 @@ def main() -> int:
     else:
         print("\nAll required data present.")
 
-    print("\nNow push it back so the engine can be built against real data:")
+    if fp.api_key():
+        print(f"\nFantasyPros calls used today: {fp.calls_used_today()}"
+              f"/{fp.DAILY_CALL_LIMIT}")
+
+    print("\nNow push it back so the engine can be built against real data.")
+    print("Include the raw response cache — it means the cloud session can work")
+    print("from your data without ever spending another call:")
     print("  git add data/draft data/inputs && \\")
     print('    git commit -m "Add fetched 2026 draft data" && git push')
     return 0 if not missing else 1

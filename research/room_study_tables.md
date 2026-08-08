@@ -6,16 +6,16 @@ Titles are from `config/history.yaml` (verified against league email). Seed and 
 
 | Manager | Titles | Years | Avg seed | Avg seed 21-25 | Avg pts/available |
 |---|---|---|---|---|---|
-| Matt McCauley | 4 | 2008, 2016, 2018, 2023 | 5.38 | 5.6 | 11.9/26 |
-| Bryan Cannon | 3 | 2009, 2012, 2025 | 4.5 | 4.4 | 12.4/26 |
-| Donnie Darco | 3 | 2010, 2014, 2020 | 4.94 | 7.2 | 13.1/26 |
-| Anthony Lettieri | 3 | 2013, 2015, 2019 | 5.94 | 7.4 | 10.7/26 |
-| Jonathan Wiggins | 1 | 2011 | 4.5 | 3.6 | 12.9/26 |
-| Brendan Gamble | 1 | 2017 | 5.44 | 6.4 | 11.2/26 |
+| Matt McCauley | 4 | 2008, 2016, 2018, 2023 | 5.31 | 5.6 | 11.9/26 |
+| Bryan Cannon | 3 | 2009, 2012, 2025 | 4.56 | 4.4 | 12.4/26 |
+| Donnie Darco | 3 | 2010, 2014, 2020 | 4.88 | 7.2 | 13.3/26 |
+| Anthony Lettieri | 3 | 2013, 2015, 2019 | 5.94 | 7.4 | 10.6/26 |
+| Jonathan Wiggins | 1 | 2011 | 4.44 | 3.6 | 12.8/26 |
+| Brendan Gamble | 1 | 2017 | 5.5 | 6.4 | 11.2/26 |
 | Tyler Clark | 1 | 2022 | 5.75 | 6.8 | 11.3/26 |
-| Stephen Rogers | 1 | 2021 | 5.88 | 3.6 | 10.8/26 |
-| James Galante | 1 | 2024 | 6.12 | 4.6 | 11.1/26 |
-| Brian Dzuris | 0 | — | 6.56 | 5.4 | 11.2/26 |
+| Stephen Rogers | 1 | 2021 | 6 | 3.6 | 10.8/26 |
+| James Galante | 1 | 2024 | 6.12 | 4.6 | 11.2/26 |
+| Brian Dzuris | 0 | — | 6.5 | 5.4 | 11.2/26 |
 
 ### Seasons where the platform cache names the wrong champion
 
@@ -208,13 +208,13 @@ With 16 seasons spread over 10 slots this is ~16 observations per slot — sugge
 
 | Slot | Seasons | Avg reg-season seed | Titles |
 |---|---|---|---|
-| 1 | 16 | 5.81 | 1 |
-| 2 | 16 | 6.88 | 1 |
+| 1 | 16 | 5.88 | 1 |
+| 2 | 16 | 6.81 | 1 |
 | 3 | 16 | 4.5 | 1 |
-| 4 | 16 | 5.19 | 1 |
+| 4 | 16 | 5.31 | 1 |
 | 5 | 16 | 4.38 | 3 |
 | 6 | 16 | 6.31 | 3 |
-| 7 | 16 | 4.88 | 2 |
-| 8 | 16 | 5.56 | 1 |
+| 7 | 16 | 4.81 | 2 |
+| 8 | 16 | 5.5 | 1 |
 | 9 | 16 | 6.5 | 1 |
 | 10 | 16 | 5 | 2 |

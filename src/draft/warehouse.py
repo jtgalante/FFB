@@ -14,8 +14,14 @@ and the scrambled draft slots.
     ro    = wh.rosters()        # started lineups, 2019+
     pl    = wh.players()        # name, position, age
 
-`team_weeks` is the one worth knowing about: the platform exports record your
-score and your opponent's SCORE but never their NAME, so `opponent` is
+`team_weeks` carries two things worth knowing about. `win` is DERIVED from the
+scores, not taken from the platform export, whose flag is transposed on 9 games
+across 2015/2016/2018; the raw value survives as `win_reported`. Deriving it is
+what made the 2018 dual-points reconstruction match the commissioner's sheet
+exactly.
+
+And the platform exports record your score and your opponent's SCORE but never
+their NAME, so `opponent` is
 reconstructed by score-matching within the week. It resolves for 99.9% of rows;
 genuine ties are NULL rather than guessed.
 """

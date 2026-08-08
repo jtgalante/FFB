@@ -234,9 +234,14 @@ OFFICIAL_STANDINGS = {
 def validate() -> bool:
     """Check the dual-points reconstruction against the official sheets.
 
-    2019 and 2023 reproduce exactly. 2018 differs by one point for two
-    managers with no exact ties present in the data — most likely an ESPN
-    stat correction applied after the commissioner's sheet was written.
+    All three sampled seasons reproduce exactly.
+
+    2018 used to differ by one point for two managers, long blamed on a late
+    ESPN stat correction. The real cause was ESPN's `win` flag, which is
+    transposed on 9 games across 2015/2016/2018 — in 2018 it names Lettieri the
+    winner of a week-8 game he lost 79.42 to 80.04. `build_warehouse` now
+    derives `win` from the scores, and both 2018 discrepancies vanish, which is
+    itself evidence the commissioner's sheet was right all along.
     """
     weekly = load_weekly()
     all_ok = True

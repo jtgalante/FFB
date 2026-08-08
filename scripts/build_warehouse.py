@@ -117,8 +117,25 @@ def build_team_weeks() -> pd.DataFrame:
     for _, g in df.groupby(["season", "week", "is_playoff"]):
         opponents.update(resolve_opponents(g))
     df["opponent"] = pd.Series(opponents, dtype=object).reindex(df.index)
+    # `win` is DERIVED from the scores, not taken from the export.
+    #
+    # ESPN's flag is transposed on 9 games across 2015, 2016 and 2018 — it
+    # credits the lower scorer with the win, by margins as wide as 45 points,
+    # so it is not a late stat correction. The commissioner's own spreadsheet
+    # settles which side is right: rebuild_standings had always reported 2018
+    # off-by-one for exactly two managers, Darco 17 against an official 18 and
+    # Lettieri 7 against an official 6, and the 2018 contradiction is their
+    # week-8 game (Lettieri 79.42, Darco 80.04) with ESPN naming Lettieri the
+    # winner. Scoring it by the points fixes both discrepancies exactly.
+    #
+    # The raw flag is kept as `win_reported` so the defect stays visible and
+    # check_win_consistency can still find it. There are no exact score ties in
+    # the archive, so a strict `>` loses nothing.
+    df["win_reported"] = df["win"]
+    df["win"] = df["points"] > df["opponent_points"]
     return df[["season", "week", "manager", "opponent", "points",
-               "opponent_points", "win", "is_playoff", "platform"]]
+               "opponent_points", "win", "win_reported", "is_playoff",
+               "platform"]]
 
 
 def build_rosters() -> pd.DataFrame:
@@ -151,13 +168,14 @@ def main() -> int:
     print(f"  team_weeks    {len(tw):>6} rows "
           f"({resolved*100:.1f}% opponents resolved)")
 
-    bad_wins = check_win_consistency(tw, "team_weeks")
+    bad_wins = check_win_consistency(
+        tw.assign(win=tw["win_reported"]), "team_weeks")
     if len(bad_wins):
         seasons = ", ".join(str(s) for s in sorted(bad_wins["season"].unique()))
-        print(f"  WARNING: team_weeks has {len(bad_wins)} rows where `win` "
-              f"contradicts the scores (seasons {seasons}).\n"
-              f"           Source defect in the ESPN export, written through "
-              f"unchanged. Recompute from points if you need true records.")
+        print(f"  NOTE: `win` derived from the scores. The export's own flag "
+              f"disagreed on {len(bad_wins)} rows\n"
+              f"        (seasons {seasons}); it is kept as `win_reported` so "
+              f"the defect stays visible.")
 
     pw = build_player_weeks()
     check_team_codes(pw, "team", "player_weeks")

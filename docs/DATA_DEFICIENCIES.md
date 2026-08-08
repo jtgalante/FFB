@@ -45,7 +45,7 @@ records a failed statistical approach so nobody retries it.
 Merging it partially would introduce phantom managers into every per-manager
 analysis, so it stays out until someone remembers the four team names.
 
-## 3. Eighteen rows where `win` contradicts its own scores — SOLVED, fix pending
+## 3. ~~Eighteen rows where `win` contradicts its own scores~~ — SOLVED AND FIXED
 
 In `team_weeks`, 9 games across 2015, 2016 and 2018 record a winner who scored
 fewer points. `scripts/build_warehouse.py` warns; `check_win_consistency` in
@@ -67,13 +67,18 @@ fewer points. `scripts/build_warehouse.py` warns; `check_win_consistency` in
 Most likely a transposition in the ESPN export — the flag written against the
 wrong side of the matchup.
 
-**The fix, not yet applied:** derive `win` from `points > opponent_points` in
-`build_warehouse` rather than trusting the field, keeping the raw flag in a
-separate column so the defect stays visible. That should make 2018 validate
-exactly, taking the validated seasons from 2 of 3 to 3 of 3. Note that
-`scripts/rebuild_standings.py` still carries a comment calling the 2018
-discrepancy "likely an ESPN stat correction applied after the sheet was
-written" — that explanation is wrong and should be replaced when the fix lands.
+**FIXED 2026-08-08.** `build_warehouse` now derives `win` from
+`points > opponent_points` and keeps the raw flag as `win_reported`, so the
+defect stays visible without being load-bearing. There are no exact score ties
+in the archive, so a strict comparison loses nothing.
+
+The result confirms the diagnosis: `rebuild_standings --validate` now reports
+**exact matches for 2018, 2019 and 2023** — 3 of 3 sampled seasons, up from 2
+of 3. The 2018 discrepancy this repo carried from the beginning was never a
+stat correction; it was this.
+
+Head-to-head records for 2015, 2016 and 2018 changed by a game or two as a
+result, and are now right.
 
 ## 4. Opponents are reconstructed, not recorded
 

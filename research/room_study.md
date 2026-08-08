@@ -29,10 +29,11 @@ Both halves are now reconstructed:
 
 - **Regular season** is recomputed from weekly scores in
   `scripts/rebuild_standings.py`. It reproduces the commissioner's own
-  spreadsheets *exactly* for 2019 and 2023 (all ten managers), and is one point
-  off for two managers in 2018 — no ties exist in that data, so the likely
-  cause is an ESPN stat correction applied after the sheet was written.
-  Check it any time with `--validate`.
+  spreadsheets *exactly* for 2019, 2023 **and 2018**. 2018 was one point off
+  for two managers until 2026-08-08; the cause was not a stat correction but
+  ESPN's `win` flag, transposed on 9 games across 2015/2016/2018. Deriving the
+  result from the scores fixed both discrepancies exactly — the commissioner's
+  sheet was right all along. Check it any time with `--validate`.
 - **Champions** live in `config/history.yaml` with a source per season. Twelve
   are quoted directly from league email. **2018 and 2020 are derived**, not
   stated: the commissioner published cumulative title counts in January 2018

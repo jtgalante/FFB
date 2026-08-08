@@ -6,10 +6,10 @@ Titles are from `config/history.yaml` (verified against league email). Seed and 
 
 | Manager | Titles | Years | Avg seed | Avg seed 21-25 | Avg pts/available |
 |---|---|---|---|---|---|
+| Matt McCauley | 4 | 2008, 2016, 2018, 2023 | 5.38 | 5.6 | 11.9/26 |
+| Bryan Cannon | 3 | 2009, 2012, 2025 | 4.5 | 4.4 | 12.4/26 |
 | Donnie Darco | 3 | 2010, 2014, 2020 | 4.94 | 7.2 | 13.1/26 |
-| Matt McCauley | 3 | 2016, 2018, 2023 | 5.38 | 5.6 | 11.9/26 |
 | Anthony Lettieri | 3 | 2013, 2015, 2019 | 5.94 | 7.4 | 10.7/26 |
-| Bryan Cannon | 2 | 2012, 2025 | 4.5 | 4.4 | 12.4/26 |
 | Jonathan Wiggins | 1 | 2011 | 4.5 | 3.6 | 12.9/26 |
 | Brendan Gamble | 1 | 2017 | 5.44 | 6.4 | 11.2/26 |
 | Tyler Clark | 1 | 2022 | 5.75 | 6.8 | 11.3/26 |
@@ -29,15 +29,15 @@ Titles are from `config/history.yaml` (verified against league email). Seed and 
 
 | Manager | Median rd (16y) | Range | Median rd (21-25) | Avg QB rank taken |
 |---|---|---|---|---|
-| Brian Dzuris | 5.0 | 2–12 | 4 | 5.1 |
-| James Galante | 5.0 | 1–9 | 6 | 3.3 |
-| Jonathan Wiggins | 5.5 | 1–12 | 5 | 3.9 |
-| Matt McCauley | 6.0 | 3–13 | 8 | 5.1 |
-| Stephen Rogers | 6.0 | 1–12 | 5 | 5.2 |
+| Brian Dzuris | 5.0 | 2–12 | 4 | 5.2 |
+| James Galante | 5.0 | 1–9 | 6 | 3.4 |
+| Jonathan Wiggins | 5.5 | 1–12 | 5 | 4.1 |
+| Matt McCauley | 6.0 | 3–13 | 8 | 5 |
+| Stephen Rogers | 6.0 | 1–12 | 5 | 4.9 |
 | Tyler Clark | 6.0 | 3–11 | 6 | 5.4 |
-| Donnie Darco | 7.0 | 1–15 | 10 | 6.3 |
-| Anthony Lettieri | 8.0 | 1–12 | 6 | 7.3 |
-| Brendan Gamble | 8.5 | 2–15 | 7 | 7.2 |
+| Donnie Darco | 7.0 | 1–15 | 10 | 6.4 |
+| Anthony Lettieri | 8.0 | 1–12 | 6 | 7.2 |
+| Brendan Gamble | 8.5 | 2–15 | 7 | 7.1 |
 | Bryan Cannon | 9.0 | 2–13 | 9 | 7.4 |
 
 ## QB #2 timing (round taken)
@@ -45,28 +45,28 @@ Titles are from `config/history.yaml` (verified against league email). Seed and 
 | Manager | Median rd (16y) | Range | Median rd (21-25) | Avg QB rank taken |
 |---|---|---|---|---|
 | Brian Dzuris | 11.0 | 10–14 | 12.5 | 12.7 |
-| Brendan Gamble | 12.0 | 8–15 | 11 | 12.5 |
-| Bryan Cannon | 12 | 11–16 | 13 | 12.7 |
+| Brendan Gamble | 12.0 | 8–15 | 11 | 12.3 |
+| Bryan Cannon | 12 | 11–16 | 13 | 12.6 |
 | Donnie Darco | 12 | 10–15 | 13 | 13.2 |
 | Matt McCauley | 12.0 | 11–14 | 13 | 13.7 |
 | Anthony Lettieri | 13 | 9–15 | 14 | 12.4 |
 | James Galante | 13 | 13–13 | — | 18 |
-| Jonathan Wiggins | 13.0 | 11–15 | 13.0 | 13.3 |
-| Stephen Rogers | 13.0 | 9–15 | 13.5 | 14.2 |
+| Jonathan Wiggins | 13.0 | 11–15 | 13.0 | 13.4 |
+| Stephen Rogers | 13.0 | 9–15 | 13.5 | 14.5 |
 | Tyler Clark | 15 | 11–16 | 15 | 15.4 |
 
 ## TE #1 timing (round taken)
 
 | Manager | Median rd (16y) | Range | Median rd (21-25) | Avg TE rank taken |
 |---|---|---|---|---|
-| James Galante | 6.0 | 1–10 | 7 | 3.9 |
+| James Galante | 6.0 | 1–10 | 7 | 3.8 |
 | Jonathan Wiggins | 6.5 | 1–11 | 6 | 4.4 |
-| Bryan Cannon | 7.5 | 2–15 | 4 | 5.5 |
-| Matt McCauley | 7.5 | 2–14 | 6 | 5.5 |
-| Stephen Rogers | 7.5 | 2–11 | 8 | 5.5 |
+| Bryan Cannon | 7.5 | 2–15 | 4 | 5.6 |
+| Matt McCauley | 7.5 | 2–14 | 6 | 5.6 |
+| Stephen Rogers | 7.5 | 2–11 | 8 | 5.6 |
 | Tyler Clark | 7.5 | 2–10 | 9 | 4.8 |
-| Anthony Lettieri | 8.0 | 3–14 | 8 | 6.2 |
-| Brian Dzuris | 8 | 3–15 | 8.5 | 6.5 |
+| Anthony Lettieri | 8.0 | 3–14 | 8 | 6.1 |
+| Brian Dzuris | 8 | 3–15 | 8.5 | 6.6 |
 | Brendan Gamble | 10.0 | 4–15 | 10 | 6.7 |
 | Donnie Darco | 10.0 | 4–16 | 5 | 7.4 |
 
@@ -104,16 +104,16 @@ Titles are from `config/history.yaml` (verified against league email). Seed and 
 
 | Manager | Opportunities | Joined | Rate | vs room |
 |---|---|---|---|---|
-| Tyler Clark | 57 | 32 | 56% | 1.27x |
-| Brendan Gamble | 59 | 32 | 54% | 1.22x |
-| Brian Dzuris | 59 | 30 | 51% | 1.15x |
-| Bryan Cannon | 74 | 31 | 42% | 0.95x |
-| James Galante | 57 | 24 | 42% | 0.95x |
-| Donnie Darco | 67 | 28 | 42% | 0.94x |
-| Stephen Rogers | 61 | 25 | 41% | 0.92x |
-| Matt McCauley | 57 | 23 | 40% | 0.91x |
-| Jonathan Wiggins | 60 | 23 | 38% | 0.86x |
-| Anthony Lettieri | 56 | 21 | 38% | 0.85x |
+| Brendan Gamble | 63 | 38 | 60% | 1.38x |
+| Brian Dzuris | 51 | 25 | 49% | 1.12x |
+| Tyler Clark | 63 | 31 | 49% | 1.12x |
+| Donnie Darco | 62 | 28 | 45% | 1.03x |
+| Bryan Cannon | 64 | 27 | 42% | 0.96x |
+| Matt McCauley | 63 | 26 | 41% | 0.94x |
+| Anthony Lettieri | 57 | 23 | 40% | 0.92x |
+| Stephen Rogers | 55 | 21 | 38% | 0.87x |
+| Jonathan Wiggins | 67 | 25 | 37% | 0.85x |
+| James Galante | 54 | 18 | 33% | 0.76x |
 
 ## Player loyalty (their last-year player drafted again by anyone; 10% = random)
 
@@ -136,8 +136,8 @@ Positions taken in the first 19 picks (i.e. gone before pick 20/21 from slot 1),
 
 | Year | RB≤19 | WR≤19 | QB≤19 | TE≤19 | QB1 pick | QB3 pick | TE1 pick |
 |---|---|---|---|---|---|---|---|
-| 2021 | 13 | 5 | 0 | 1 | 29 | 55 | 15 |
-| 2022 | 13 | 6 | 0 | 0 | 34 | 55 | 20 |
+| 2021 | 14 | 4 | 0 | 1 | 28 | 52 | 12 |
+| 2022 | 13 | 6 | 0 | 0 | 38 | 56 | 20 |
 | 2023 | 11 | 7 | 0 | 1 | 28 | 36 | 13 |
 | 2024 | 11 | 8 | 0 | 0 | 26 | 37 | 41 |
 | 2025 | 12 | 7 | 0 | 0 | 25 | 37 | 28 |
@@ -166,19 +166,21 @@ Position share by round (2021-2025, QB/RB/WR/TE picks):
 
 | Year | Champion | Slot | Rounds 1-6 positions | First QB rd | Caveat |
 |---|---|---|---|---|---|
+| 2008 | Matt McCauley | ? |  | none | owner |
+| 2009 | Bryan Cannon | ? |  | none | owner |
 | 2010 | Donnie Darco | 4 | RB → WR → RB → RB → WR → WR | 8 |  |
 | 2011 | Jonathan Wiggins | 5 | RB → WR → QB → RB → WR → RB | 3 |  |
 | 2012 | Bryan Cannon | 6 | RB → QB → RB → WR → RB → RB | 2 |  |
 | 2013 | Anthony Lettieri | 10 | RB → RB → WR → WR → TE → RB | 8 |  |
 | 2014 | Donnie Darco | 7 | WR → RB → WR → RB → RB → WR | 12 |  |
-| 2015 | Anthony Lettieri | 5 | RB → WR → RB → RB → RB → WR | 11 |  |
+| 2015 | Anthony Lettieri | 2 | RB → WR → RB → RB → RB → WR | 11 |  |
 | 2016 | Matt McCauley | 6 | WR → WR → WR → QB → RB → TE | 4 |  |
-| 2017 | Brendan Gamble | 5 | RB → RB → WR → RB → WR → RB | 15 |  |
+| 2017 | Brendan Gamble | 9 | RB → RB → WR → RB → WR → RB | 15 |  |
 | 2018 | Matt McCauley | 6 | RB → RB → WR → WR → RB → WR | 7 | derived |
 | 2019 | Anthony Lettieri | 8 | RB → WR → TE → RB → WR → RB | 9 |  |
 | 2020 | Donnie Darco | 5 | RB → WR → WR → WR → RB → TE | 7 | derived |
-| 2021 | Stephen Rogers | 1 | RB → RB → WR → WR → WR → RB | 8 |  |
-| 2022 | Tyler Clark | 6 | RB → WR → RB → WR → RB → QB | 6 |  |
+| 2021 | Stephen Rogers | 10 | RB → RB → WR → WR → WR → RB | 8 |  |
+| 2022 | Tyler Clark | 5 | RB → WR → RB → WR → RB → QB | 6 |  |
 | 2023 | Matt McCauley | 7 | WR → RB → RB → TE → WR → RB | 13 |  |
 | 2024 | James Galante | 7 | RB → WR → RB → WR → QB → RB | 5 | bracket |
 | 2025 | Bryan Cannon | 1 | RB → WR → WR → TE → RB → WR | 11 | bracket |
@@ -189,16 +191,16 @@ Champions' first QB: median round 8.0; 13 of 16 waited until round 5 or later. T
 
 | Manager | 2021 | 2022 | 2023 | 2024 | 2025 |
 |---|---|---|---|---|---|
-| Anthony Lettieri | 2 | 9 | 4 | 3 | 6 |
-| Brendan Gamble | 10 | 3 | 1 | 9 | 7 |
-| Brian Dzuris | 4 | 4 | 5 | 8 | 4 |
-| Bryan Cannon | 7 | 8 | 8 | 2 | 1 |
-| Donnie Darco | 9 | 2 | 2 | 1 | 3 |
-| James Galante | 6 | 5 | 3 | 7 | 10 |
-| Jonathan Wiggins | 3 | 7 | 9 | 6 | 8 |
-| Matt McCauley | 5 | 1 | 7 | 4 | 5 |
-| Stephen Rogers | 1 | 10 | 6 | 10 | 2 |
-| Tyler Clark | 8 | 6 | 10 | 5 | 9 |
+| Anthony Lettieri | 4 | 6 | 4 | 3 | 6 |
+| Brendan Gamble | 6 | 9 | 1 | 9 | 7 |
+| Brian Dzuris | 2 | 7 | 5 | 8 | 4 |
+| Bryan Cannon | 7 | 4 | 8 | 2 | 1 |
+| Donnie Darco | 8 | 8 | 2 | 1 | 3 |
+| James Galante | 9 | 10 | 3 | 7 | 10 |
+| Jonathan Wiggins | 5 | 3 | 9 | 6 | 8 |
+| Matt McCauley | 1 | 1 | 7 | 4 | 5 |
+| Stephen Rogers | 10 | 2 | 6 | 10 | 2 |
+| Tyler Clark | 3 | 5 | 10 | 5 | 9 |
 
 ## Outcomes by draft slot (16 seasons, dual-points seeding)
 
@@ -206,13 +208,13 @@ With 16 seasons spread over 10 slots this is ~16 observations per slot — sugge
 
 | Slot | Seasons | Avg reg-season seed | Titles |
 |---|---|---|---|
-| 1 | 16 | 5.19 | 2 |
-| 2 | 16 | 6.19 | 0 |
-| 3 | 16 | 5.81 | 0 |
-| 4 | 16 | 6.5 | 1 |
-| 5 | 16 | 4.44 | 4 |
-| 6 | 16 | 5.19 | 4 |
-| 7 | 16 | 4 | 3 |
-| 8 | 16 | 5.38 | 1 |
-| 9 | 16 | 6.56 | 0 |
-| 10 | 16 | 5.75 | 1 |
+| 1 | 16 | 5.81 | 1 |
+| 2 | 16 | 6.62 | 1 |
+| 3 | 16 | 4.75 | 0 |
+| 4 | 16 | 5.56 | 1 |
+| 5 | 16 | 4.25 | 3 |
+| 6 | 16 | 6 | 3 |
+| 7 | 16 | 4.44 | 3 |
+| 8 | 16 | 5.56 | 1 |
+| 9 | 16 | 6.56 | 1 |
+| 10 | 16 | 5.44 | 2 |
